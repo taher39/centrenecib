@@ -560,7 +560,7 @@ export const listStaff = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const sb = admin();
-    const { data: roles } = await sb.from("user_roles").select("*").eq("role", "staff");
+    const { data: roles } = await sb.from("user_roles").select("*").eq("role", "secretary");
     const { data: perms } = await sb.from("staff_permissions").select("*");
     return { staff: roles ?? [], perms: perms ?? [] };
   });
@@ -582,7 +582,7 @@ export const createStaff = createServerFn({ method: "POST" })
     const email = `${data.username.toLowerCase()}@nassib.local`;
     const { data: created, error } = await sb.auth.admin.createUser({ email, password: data.password, email_confirm: true });
     if (error || !created.user) throw new Error(error?.message ?? "Erreur");
-    await sb.from("user_roles").insert({ user_id: created.user.id, role: "staff", username: data.username, display_name: data.displayName });
+    await sb.from("user_roles").insert({ user_id: created.user.id, role: "secretary", username: data.username, display_name: data.displayName });
     if (data.permissions.length) {
       await sb.from("staff_permissions").insert(data.permissions.map((p) => ({ user_id: created.user!.id, scope: p.scope, action: p.action })));
     }
