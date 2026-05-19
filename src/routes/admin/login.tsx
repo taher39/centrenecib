@@ -45,6 +45,7 @@ function AdminLoginPage() {
             <div className="grid gap-2"><Label>{t("admin.username")}</Label><Input value={username} onChange={(e) => setUsername(e.target.value)} required autoComplete="username" /></div>
             <div className="grid gap-2"><Label>{t("admin.password")}</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" /></div>
             <Button type="submit" disabled={busy} className="h-11 rounded-xl">{busy ? t("common.loading") : t("admin.signIn")}</Button>
+            <Link to="/admin/signup" className="text-xs text-center text-muted-foreground hover:text-foreground">Configuration initiale →</Link>
           </form>
         </motion.div>
       </main>
