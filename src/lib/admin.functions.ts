@@ -99,10 +99,15 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const sb = admin();
-    const update: Record<string, unknown> = { status: data.status, is_read: true };
+    const update: {
+      status: typeof data.status;
+      is_read: boolean;
+      appointment_date?: string;
+      appointment_time?: string;
+    } = { status: data.status, is_read: true };
     if (data.status === "postponed" && data.newDate && data.newTime) {
       update.appointment_date = data.newDate;
-      update.appointment_time = data.newTime;
+      update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
     }
     const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd)").single();
 
