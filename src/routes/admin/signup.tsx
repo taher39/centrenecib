@@ -39,7 +39,7 @@ function SignupPage() {
           <p className="text-xs text-muted-foreground">Créez le compte administrateur principal. Ce formulaire ne sera plus accessible après.</p>
           <form className="grid gap-3" onSubmit={submit}>
             <div className="grid gap-2"><Label>Nom</Label><Input value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} required /></div>
-            <div className="grid gap-2"><Label>Nom d'utilisateur</Label><Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required pattern="[a-zA-Z0-9_.-]+" /></div>
+            <div className="grid gap-2"><Label>Nom d'utilisateur</Label><Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} required pattern="[A-Za-z0-9_.\-]+" /></div>
             <div className="grid gap-2"><Label>Mot de passe</Label><Input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={6} /></div>
             <Button type="submit" disabled={busy}>{busy ? "…" : "Créer"}</Button>
           </form>
