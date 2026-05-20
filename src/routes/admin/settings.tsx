@@ -38,11 +38,12 @@ function SettingsPage() {
 
   const updateCred = async () => {
     try {
-      const data: { newUsername?: string; newPassword?: string } = {};
+      const data: { newDisplayName?: string; newUsername?: string; newPassword?: string } = {};
+      if (cred.newDisplayName) data.newDisplayName = cred.newDisplayName;
       if (cred.newUsername) data.newUsername = cred.newUsername;
       if (cred.newPassword) data.newPassword = cred.newPassword;
       await credFn({ data });
-      setCred({ newUsername: "", newPassword: "" });
+      setCred({ newDisplayName: "", newUsername: "", newPassword: "" });
       toast.success("✓");
     } catch (e) { toast.error((e as Error).message); }
   };
