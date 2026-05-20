@@ -655,7 +655,7 @@ export const updateMyCredentials = createServerFn({ method: "POST" })
     if (data.newUsername) updates.email = `${data.newUsername.toLowerCase()}@nassib.local`;
     if (data.newPassword) updates.password = data.newPassword;
     if (Object.keys(updates).length) await sb.auth.admin.updateUserById(context.userId, updates);
-    const roleUpdate: Record<string, unknown> = {};
+    const roleUpdate: { username?: string; display_name?: string } = {};
     if (data.newUsername) roleUpdate.username = data.newUsername;
     if (data.newDisplayName) roleUpdate.display_name = data.newDisplayName;
     if (Object.keys(roleUpdate).length) await sb.from("user_roles").update(roleUpdate).eq("user_id", context.userId);
