@@ -75,8 +75,9 @@ function SettingsPage() {
       <Card>
         <CardHeader><CardTitle>Mes identifiants</CardTitle></CardHeader>
         <CardContent className="grid gap-3">
+          <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={cred.newDisplayName} onChange={(e) => setCred({ ...cred, newDisplayName: e.target.value })} placeholder="…" /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="grid gap-2"><Label>{t("admin.username")}</Label><Input value={cred.newUsername} onChange={(e) => setCred({ ...cred, newUsername: e.target.value })} placeholder="…" /></div>
+            <div className="grid gap-2"><Label>{t("admin.username")}</Label><Input value={cred.newUsername} onChange={(e) => setCred({ ...cred, newUsername: e.target.value })} placeholder="…" pattern="[A-Za-z0-9_.\-]+" /></div>
             <div className="grid gap-2"><Label>{t("admin.password")}</Label><Input type="password" value={cred.newPassword} onChange={(e) => setCred({ ...cred, newPassword: e.target.value })} placeholder="…" /></div>
           </div>
           <Button onClick={updateCred} className="justify-self-end">{t("common.save")}</Button>
