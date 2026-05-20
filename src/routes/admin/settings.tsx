@@ -22,7 +22,7 @@ function SettingsPage() {
   const credFn = useServerFn(updateMyCredentials);
   const q = useQuery({ queryKey: ["settings"], queryFn: () => getFn() });
   const [form, setForm] = useState<S>({ name: "Centre Nassib", address: "", phone: "", email: "", nif: "", nis: "", rc: "", article: "", ai: "" });
-  const [cred, setCred] = useState({ newUsername: "", newPassword: "" });
+  const [cred, setCred] = useState({ newDisplayName: "", newUsername: "", newPassword: "" });
 
   useEffect(() => {
     if (q.data?.settings) {
