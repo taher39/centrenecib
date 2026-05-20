@@ -643,6 +643,7 @@ export const updateMyCredentials = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
+        newDisplayName: z.string().min(1).max(80).optional(),
         newUsername: z.string().min(3).max(40).regex(/^[a-zA-Z0-9_.-]+$/).optional(),
         newPassword: z.string().min(6).max(120).optional(),
       })
@@ -654,6 +655,10 @@ export const updateMyCredentials = createServerFn({ method: "POST" })
     if (data.newUsername) updates.email = `${data.newUsername.toLowerCase()}@nassib.local`;
     if (data.newPassword) updates.password = data.newPassword;
     if (Object.keys(updates).length) await sb.auth.admin.updateUserById(context.userId, updates);
-    if (data.newUsername) await sb.from("user_roles").update({ username: data.newUsername }).eq("user_id", context.userId);
+    const roleUpdate: { username?: string; display_name?: string } = {};
+    if (data.newUsername) roleUpdate.username = data.newUsername;
+    if (data.newDisplayName) roleUpdate.display_name = data.newDisplayName;
+    if (Object.keys(roleUpdate).length) await sb.from("user_roles").update(roleUpdate).eq("user_id", context.userId);
+    await logActivity(context.userId, null, "update", "credentials");
     return { ok: true };
   });

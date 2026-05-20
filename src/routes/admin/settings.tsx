@@ -22,7 +22,7 @@ function SettingsPage() {
   const credFn = useServerFn(updateMyCredentials);
   const q = useQuery({ queryKey: ["settings"], queryFn: () => getFn() });
   const [form, setForm] = useState<S>({ name: "Centre Nassib", address: "", phone: "", email: "", nif: "", nis: "", rc: "", article: "", ai: "" });
-  const [cred, setCred] = useState({ newUsername: "", newPassword: "" });
+  const [cred, setCred] = useState({ newDisplayName: "", newUsername: "", newPassword: "" });
 
   useEffect(() => {
     if (q.data?.settings) {
@@ -38,11 +38,12 @@ function SettingsPage() {
 
   const updateCred = async () => {
     try {
-      const data: { newUsername?: string; newPassword?: string } = {};
+      const data: { newDisplayName?: string; newUsername?: string; newPassword?: string } = {};
+      if (cred.newDisplayName) data.newDisplayName = cred.newDisplayName;
       if (cred.newUsername) data.newUsername = cred.newUsername;
       if (cred.newPassword) data.newPassword = cred.newPassword;
       await credFn({ data });
-      setCred({ newUsername: "", newPassword: "" });
+      setCred({ newDisplayName: "", newUsername: "", newPassword: "" });
       toast.success("✓");
     } catch (e) { toast.error((e as Error).message); }
   };
@@ -74,8 +75,9 @@ function SettingsPage() {
       <Card>
         <CardHeader><CardTitle>Mes identifiants</CardTitle></CardHeader>
         <CardContent className="grid gap-3">
+          <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={cred.newDisplayName} onChange={(e) => setCred({ ...cred, newDisplayName: e.target.value })} placeholder="…" /></div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="grid gap-2"><Label>{t("admin.username")}</Label><Input value={cred.newUsername} onChange={(e) => setCred({ ...cred, newUsername: e.target.value })} placeholder="…" /></div>
+            <div className="grid gap-2"><Label>{t("admin.username")}</Label><Input value={cred.newUsername} onChange={(e) => setCred({ ...cred, newUsername: e.target.value })} placeholder="…" pattern="[A-Za-z0-9_.\-]+" /></div>
             <div className="grid gap-2"><Label>{t("admin.password")}</Label><Input type="password" value={cred.newPassword} onChange={(e) => setCred({ ...cred, newPassword: e.target.value })} placeholder="…" /></div>
           </div>
           <Button onClick={updateCred} className="justify-self-end">{t("common.save")}</Button>
