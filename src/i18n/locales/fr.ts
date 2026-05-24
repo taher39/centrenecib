@@ -20,6 +20,7 @@ export default {
     saveCode: "Ce code vous permet de réserver à nouveau sans ressaisir vos informations.",
     invalidCode: "Code invalide",
     pickAtLeastOne: "Sélectionnez au moins un soin",
+    pickDateForEach: "Choisissez une date pour chaque soin",
     bookingError: "Une erreur est survenue — réessayez",
     countdownEnds: "Se termine dans",
     days: "j", hours: "h", mins: "min", secs: "s",
