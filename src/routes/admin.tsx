@@ -16,8 +16,10 @@ import { useEffect, useState } from "react";
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
     if (location.pathname === "/admin/login" || location.pathname === "/admin/signup") return;
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/admin/login" });
+    // Only check auth in the browser — SSR has no session and would redirect-loop.
+    if (typeof window === "undefined") return;
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) throw redirect({ to: "/admin/login" });
   },
   component: AdminLayout,
 });
