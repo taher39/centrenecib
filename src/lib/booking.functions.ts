@@ -142,7 +142,7 @@ export const book = createServerFn({ method: "POST" })
 
       });
       if (insertErr) throw new Error(insertErr.message);
-      created.push({ serviceName: slot.service.name, time: slot.time, date: data.date });
+      created.push({ serviceName: slot.service.name, time: slot.time, date: b.date });
     }
 
     return { clientId, code, isNew, appointments: created };
