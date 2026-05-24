@@ -92,8 +92,15 @@ export const book = createServerFn({ method: "POST" })
         fullName: z.string().min(2).max(120).optional(),
         age: z.number().int().min(8).max(110).optional(),
         phone: z.string().min(6).max(30).optional(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-        serviceIds: z.array(z.string().uuid()).min(1).max(10),
+        bookings: z
+          .array(
+            z.object({
+              serviceId: z.string().uuid(),
+              date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            })
+          )
+          .min(1)
+          .max(10),
       })
       .parse(d)
   )
@@ -120,19 +127,19 @@ export const book = createServerFn({ method: "POST" })
       code = existing?.code ?? null;
     }
 
-    // Group id to bundle multi-service bookings
     const groupId = crypto.randomUUID();
     const created: Array<{ serviceName: string; time: string; date: string }> = [];
 
-    for (const serviceId of data.serviceIds) {
-      const slot = await findSlot(sb, serviceId, data.date);
+    for (const b of data.bookings) {
+      const slot = await findSlot(sb, b.serviceId, b.date);
       const { error: insertErr } = await sb.from("appointments").insert({
         client_id: clientId!,
-        service_id: serviceId,
-        appointment_date: data.date,
+        service_id: b.serviceId,
+        appointment_date: b.date,
         appointment_time: slot.time + ":00",
         status: "pending",
         group_id: groupId,
+
       });
       if (insertErr) throw new Error(insertErr.message);
       created.push({ serviceName: slot.service.name, time: slot.time, date: data.date });
