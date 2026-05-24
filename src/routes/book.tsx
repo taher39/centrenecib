@@ -30,11 +30,8 @@ function BookPage() {
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [date, setDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().slice(0, 10);
-  });
+  // Per-service chosen date
+  const [dates, setDates] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
 
   // Restore client from localStorage
@@ -61,19 +58,20 @@ function BookPage() {
   const svcQuery = useQuery({ queryKey: ["services-public"], queryFn: () => fetchServices() });
   const services = svcQuery.data?.services ?? [];
 
-  const dateOptions = useMemo(() => {
-    const opts: { value: string; label: string; dow: number }[] = [];
-    for (let i = 0; i < 14; i++) {
+  // Generate next 21 days, then filter per service by available_days
+  const next21 = useMemo(() => {
+    const arr: { value: string; dow: number; dayLabel: string }[] = [];
+    for (let i = 0; i < 21; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const dow = d.getDay();
-      opts.push({
+      arr.push({
         value: d.toISOString().slice(0, 10),
-        label: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
         dow,
+        dayLabel: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
       });
     }
-    return opts;
+    return arr;
   }, [isAr]);
 
   const toggle = (id: string) => {
@@ -82,14 +80,22 @@ function BookPage() {
       if (n.has(id)) n.delete(id); else n.add(id);
       return n;
     });
+    setDates((d) => {
+      const n = { ...d };
+      if (n[id]) delete n[id];
+      return n;
+    });
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) throw new Error(t("client.pickAtLeastOne"));
+      const bookings = Array.from(selected).map((sid) => ({ serviceId: sid, date: dates[sid] }));
+      const missing = bookings.find((b) => !b.date);
+      if (missing) throw new Error(t("client.pickDateForEach"));
       const payload = clientInfo?.id
-        ? { clientId: clientInfo.id, date, serviceIds: Array.from(selected) }
-        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, date, serviceIds: Array.from(selected) };
+        ? { clientId: clientInfo.id, bookings: bookings as { serviceId: string; date: string }[] }
+        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, bookings: bookings as { serviceId: string; date: string }[] };
       return bookFn({ data: payload });
     },
     onSuccess: (res) => {
@@ -99,6 +105,7 @@ function BookPage() {
     },
     onError: (e: Error) => toast.error(e.message ?? t("client.bookingError")),
   });
+
 
   if (!clientInfo) {
     return (
