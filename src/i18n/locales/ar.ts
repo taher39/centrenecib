@@ -20,6 +20,7 @@ export default {
     saveCode: "هذا الرمز يسمح لك بالحجز مرة أخرى دون إعادة إدخال معلوماتك.",
     invalidCode: "الرمز غير صحيح",
     pickAtLeastOne: "اختاري جلسة واحدة على الأقل",
+    pickDateForEach: "اختاري يوماً لكل جلسة محددة",
     bookingError: "حدث خطأ — حاولي مرة أخرى",
     countdownEnds: "ينتهي العرض خلال",
     days: "يوم", hours: "س", mins: "د", secs: "ث",

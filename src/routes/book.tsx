@@ -30,11 +30,8 @@ function BookPage() {
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [date, setDate] = useState<string>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().slice(0, 10);
-  });
+  // Per-service chosen date
+  const [dates, setDates] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
 
   // Restore client from localStorage
@@ -61,19 +58,20 @@ function BookPage() {
   const svcQuery = useQuery({ queryKey: ["services-public"], queryFn: () => fetchServices() });
   const services = svcQuery.data?.services ?? [];
 
-  const dateOptions = useMemo(() => {
-    const opts: { value: string; label: string; dow: number }[] = [];
-    for (let i = 0; i < 14; i++) {
+  // Generate next 21 days, then filter per service by available_days
+  const next21 = useMemo(() => {
+    const arr: { value: string; dow: number; dayLabel: string }[] = [];
+    for (let i = 0; i < 21; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const dow = d.getDay();
-      opts.push({
+      arr.push({
         value: d.toISOString().slice(0, 10),
-        label: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
         dow,
+        dayLabel: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
       });
     }
-    return opts;
+    return arr;
   }, [isAr]);
 
   const toggle = (id: string) => {
@@ -82,14 +80,22 @@ function BookPage() {
       if (n.has(id)) n.delete(id); else n.add(id);
       return n;
     });
+    setDates((d) => {
+      const n = { ...d };
+      if (n[id]) delete n[id];
+      return n;
+    });
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) throw new Error(t("client.pickAtLeastOne"));
+      const bookings = Array.from(selected).map((sid) => ({ serviceId: sid, date: dates[sid] }));
+      const missing = bookings.find((b) => !b.date);
+      if (missing) throw new Error(t("client.pickDateForEach"));
       const payload = clientInfo?.id
-        ? { clientId: clientInfo.id, date, serviceIds: Array.from(selected) }
-        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, date, serviceIds: Array.from(selected) };
+        ? { clientId: clientInfo.id, bookings: bookings as { serviceId: string; date: string }[] }
+        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, bookings: bookings as { serviceId: string; date: string }[] };
       return bookFn({ data: payload });
     },
     onSuccess: (res) => {
@@ -99,6 +105,7 @@ function BookPage() {
     },
     onError: (e: Error) => toast.error(e.message ?? t("client.bookingError")),
   });
+
 
   if (!clientInfo) {
     return (
@@ -161,32 +168,51 @@ function BookPage() {
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           {services.map((s) => {
             const isSel = selected.has(s.id);
+            const availDays = (s.available_days as number[]) ?? [0, 1, 2, 3, 4, 5, 6];
+            const daysLabels = availDays.map((d) => (isAr ? DAYS_AR[d] : DAYS_FR[d])).join(" · ");
             return (
-              <button key={s.id} onClick={() => toggle(s.id)} className={`text-start rounded-2xl border p-4 transition shadow-sm ${isSel ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border bg-card hover:bg-secondary/40"}`}>
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="font-semibold text-foreground">{s.name}</div>
-                    {s.description && <div className="text-xs text-muted-foreground mt-1">{s.description}</div>}
+              <div key={s.id} className={`rounded-2xl border p-4 transition shadow-sm ${isSel ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border bg-card"}`}>
+                <button onClick={() => toggle(s.id)} className="w-full text-start">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-foreground">{s.name}</div>
+                      {s.description && <div className="text-xs text-muted-foreground mt-1">{s.description}</div>}
+                    </div>
+                    {isSel && <Check className="h-5 w-5 text-primary shrink-0" />}
                   </div>
-                  {isSel && <Check className="h-5 w-5 text-primary shrink-0" />}
-                </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{s.duration_min} {t("common.minutes")}</Badge>
-                  <Badge className="bg-destructive text-destructive-foreground hover:bg-destructive">{Number(s.price_dzd).toLocaleString()} {t("common.currency")}</Badge>
-                </div>
-              </button>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{s.duration_min} {t("common.minutes")}</Badge>
+                    <Badge className="bg-destructive text-destructive-foreground hover:bg-destructive">{Number(s.price_dzd).toLocaleString()} {t("common.currency")}</Badge>
+                    <Badge variant="outline" className="text-[10px]"><CalendarIcon className="h-3 w-3 me-1" />{daysLabels}</Badge>
+                  </div>
+                </button>
+
+                {isSel && (
+                  <div className="mt-4 border-t pt-3">
+                    <div className="text-xs font-medium text-muted-foreground mb-2">{t("client.chooseDate")}</div>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {next21.filter((d) => availDays.includes(d.dow)).slice(0, 14).map((d) => {
+                        const sel = dates[s.id] === d.value;
+                        return (
+                          <button
+                            key={d.value}
+                            onClick={() => setDates((prev) => ({ ...prev, [s.id]: d.value }))}
+                            className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
+                          >
+                            {d.dayLabel}
+                          </button>
+                        );
+                      })}
+                      {next21.filter((d) => availDays.includes(d.dow)).length === 0 && (
+                        <div className="text-xs text-muted-foreground">—</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
           {services.length === 0 && !svcQuery.isLoading && <div className="col-span-2 rounded-xl border-2 border-dashed p-6 text-center text-muted-foreground">—</div>}
-        </div>
-
-        <h2 className="font-display text-xl text-primary mt-8">{t("client.chooseDate")}</h2>
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
-          {dateOptions.map((d) => (
-            <button key={d.value} onClick={() => setDate(d.value)} className={`shrink-0 rounded-xl border px-4 py-2 text-sm ${date === d.value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>
-              {d.label}
-            </button>
-          ))}
         </div>
 
         <div className="sticky bottom-4 mt-8">
@@ -194,6 +220,7 @@ function BookPage() {
             {mutation.isPending ? t("common.loading") : `${t("client.selectAll")} (${selected.size})`}
           </Button>
         </div>
+
       </main>
     </div>
   );

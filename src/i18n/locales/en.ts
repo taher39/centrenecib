@@ -20,6 +20,7 @@ export default {
     saveCode: "This code lets you book again without re-entering your info.",
     invalidCode: "Invalid code",
     pickAtLeastOne: "Pick at least one service",
+    pickDateForEach: "Pick a date for each service",
     bookingError: "Something went wrong — please retry",
     countdownEnds: "Ends in",
     days: "d", hours: "h", mins: "m", secs: "s",
