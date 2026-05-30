@@ -69,8 +69,8 @@ function AdminServicesPage() {
                   <div className="mt-1 flex gap-1">{(s.available_days as number[]).map((d) => <span key={d} className="text-[10px] rounded bg-secondary px-1.5 py-0.5">{DAY_LABELS[d]}</span>)}</div>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEdit({ ...s, description: s.description ?? "" } as Svc)}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: s.id } }).then(() => qc.invalidateQueries({ queryKey: ["svc"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("services", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit({ ...s, description: s.description ?? "" } as Svc)}><Edit className="h-4 w-4" /></Button>}
+                  {can("services", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: s.id } }).then(() => qc.invalidateQueries({ queryKey: ["svc"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </div>
             </CardContent>
