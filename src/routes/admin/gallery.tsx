@@ -16,6 +16,7 @@ export const Route = createFileRoute("/admin/gallery")({ component: GalleryPage 
 
 function GalleryPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListGallery);
   const addFn = useServerFn(addGalleryImage);
