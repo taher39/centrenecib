@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
 import { Trash2, Bell } from "lucide-react";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/")({ component: AdminAppointmentsPage });
 
