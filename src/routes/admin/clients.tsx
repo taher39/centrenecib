@@ -65,8 +65,8 @@ function ClientsPage() {
                   {debt > 0 && <Badge className="bg-destructive text-destructive-foreground">{debt.toLocaleString()} {t("common.currency")}</Badge>}
                   {c.hasPending && <Badge className="bg-pending text-pending-foreground">●</Badge>}
                   <Button size="icon" variant="ghost" onClick={() => setView(c.id)}><Eye className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => setEdit({ id: c.id, full_name: c.full_name, age: c.age, phone: c.phone, notes: c.notes })}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("Supprimer ?")) delFn({ data: { id: c.id } }).then(() => qc.invalidateQueries({ queryKey: ["clients"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("clients", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit({ id: c.id, full_name: c.full_name, age: c.age, phone: c.phone, notes: c.notes })}><Edit className="h-4 w-4" /></Button>}
+                  {can("clients", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("Supprimer ?")) delFn({ data: { id: c.id } }).then(() => qc.invalidateQueries({ queryKey: ["clients"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </CardContent>
             </Card>
