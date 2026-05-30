@@ -118,6 +118,7 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "appointments", "edit");
     const sb = admin();
     const update: {
       status: typeof data.status;
@@ -163,7 +164,8 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
 export const markAppointmentRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "appointments", "edit");
     const sb = admin();
     await sb.from("appointments").update({ is_read: true }).eq("id", data.id);
     return { ok: true };
@@ -173,6 +175,7 @@ export const deleteAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "appointments", "delete");
     const sb = admin();
     await sb.from("appointments").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", "appointment", data.id);
@@ -205,6 +208,7 @@ export const saveService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => serviceSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "services", "edit");
     const sb = admin();
     const { id, ...rest } = data;
     if (id) {
@@ -221,6 +225,7 @@ export const deleteService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "services", "delete");
     const sb = admin();
     await sb.from("services").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", "service", data.id);
@@ -252,6 +257,7 @@ export const saveWorkingHours = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "services", "edit");
     const sb = admin();
     await sb.from("working_hours").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (data.slots.length) {
@@ -313,6 +319,7 @@ export const saveClient = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "clients", "edit");
     const sb = admin();
     const { id, ...rest } = data;
     await sb.from("clients").update(rest).eq("id", id);
@@ -324,6 +331,7 @@ export const deleteClient = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "clients", "delete");
     const sb = admin();
     await sb.from("appointments").delete().eq("client_id", data.id);
     await sb.from("invoices").delete().eq("client_id", data.id);
@@ -358,6 +366,7 @@ export const saveOffer = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "offers", "edit");
     const sb = admin();
     const { id, ...rest } = data;
     if (id) {
@@ -373,6 +382,7 @@ export const deleteOffer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "offers", "delete");
     const sb = admin();
     await sb.from("offers").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", "offer", data.id);
@@ -394,6 +404,7 @@ export const addGalleryImage = createServerFn({ method: "POST" })
     z.object({ image_url: z.string().url(), caption: z.string().max(120).optional().nullable() }).parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "gallery", "edit");
     const sb = admin();
     const { count } = await sb.from("gallery_images").select("*", { count: "exact", head: true });
     await sb.from("gallery_images").insert({ image_url: data.image_url, caption: data.caption ?? null, position: count ?? 0 });
@@ -405,6 +416,7 @@ export const deleteGalleryImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "gallery", "delete");
     const sb = admin();
     await sb.from("gallery_images").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", "gallery", data.id);
@@ -437,6 +449,7 @@ export const updateInvoice = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "invoices", "edit");
     const sb = admin();
     const { id, ...rest } = data;
     const { data: inv } = await sb.from("invoices").select("*").eq("id", id).single();
@@ -470,6 +483,7 @@ export const deleteInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "invoices", "delete");
     const sb = admin();
     await sb.from("invoices").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", "invoice", data.id);
@@ -520,6 +534,7 @@ export const addFinanceEntry = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "finance", "edit");
     const sb = admin();
     const occurred_at = data.occurred_at ?? new Date().toISOString();
     if (data.kind === "income") {
@@ -535,6 +550,7 @@ export const deleteFinanceEntry = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), kind: z.enum(["income", "expense"]) }).parse(d))
   .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "finance", "delete");
     const sb = admin();
     await sb.from(data.kind === "income" ? "payments" : "expenses").delete().eq("id", data.id);
     await logActivity(context.userId, null, "delete", data.kind, data.id);
@@ -568,6 +584,7 @@ export const saveSettings = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requireAdmin(context.userId);
     const sb = admin();
     const { data: existing } = await sb.from("center_settings").select("id").limit(1).maybeSingle();
     const payload = { ...data, email: data.email || null };
@@ -603,6 +620,7 @@ export const createStaff = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requireAdmin(context.userId);
     const sb = admin();
     const email = `${data.username.toLowerCase()}@nassib.local`;
     const { data: created, error } = await sb.auth.admin.createUser({ email, password: data.password, email_confirm: true });
@@ -626,6 +644,7 @@ export const updateStaffPermissions = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
+    await requireAdmin(context.userId);
     const sb = admin();
     await sb.from("staff_permissions").delete().eq("user_id", data.userId);
     if (data.permissions.length) {
@@ -639,6 +658,7 @@ export const deleteStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    await requireAdmin(context.userId);
     const sb = admin();
     await sb.auth.admin.deleteUser(data.userId);
     await logActivity(context.userId, null, "delete", "staff", data.userId);
@@ -648,7 +668,8 @@ export const deleteStaff = createServerFn({ method: "POST" })
 // ===== Activity =====
 export const listActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
+  .handler(async ({ context }) => {
+    await requireAdmin(context.userId);
     const sb = admin();
     const { data } = await sb.from("activity_log").select("*").order("created_at", { ascending: false }).limit(200);
     const ids = Array.from(new Set((data ?? []).map((a) => a.actor_id).filter(Boolean) as string[]));
