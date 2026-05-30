@@ -19,6 +19,7 @@ export const Route = createFileRoute("/admin/clients")({ component: ClientsPage 
 
 function ClientsPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListClients);
   const saveFn = useServerFn(saveClient);
