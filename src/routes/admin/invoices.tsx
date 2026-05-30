@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Trash2, Edit, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { InvoicePrintView, openPrintWindow } from "@/components/InvoicePrintView";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/invoices")({ component: InvoicesPage });
 
