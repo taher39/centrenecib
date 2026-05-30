@@ -54,7 +54,7 @@ function FinancePage() {
             {(q.data?.payments ?? []).map((p) => (
               <div key={p.id} className="flex items-center justify-between border-b pb-1">
                 <span>{p.reason}</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-medium">{Number(p.amount).toLocaleString()}</span><Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "income" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button></span>
+                <span className="flex items-center gap-2"><span className="text-primary font-medium">{Number(p.amount).toLocaleString()}</span>{can("finance", "delete") && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "income" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button>}</span>
               </div>
             ))}
           </CardContent>
