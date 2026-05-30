@@ -107,14 +107,16 @@ function AdminAppointmentsPage() {
                     </div>
                     <Badge className={statusColor(a.status)}>{t(`admin.status${a.status[0].toUpperCase() + a.status.slice(1)}`)}</Badge>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Select value={a.status} onValueChange={(v) => onStatus(a.id, v as typeof STATUSES[number])}>
-                        <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {STATUSES.map((s) => <SelectItem key={s} value={s}>{t(`admin.status${s[0].toUpperCase() + s.slice(1)}`)}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                      {!a.is_read && <Button size="sm" variant="ghost" onClick={() => markRead({ data: { id: a.id } }).then(() => qc.invalidateQueries({ queryKey: ["appts"] }))}>{t("admin.markRead")}</Button>}
-                      <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) del({ data: { id: a.id } }).then(() => qc.invalidateQueries({ queryKey: ["appts"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      {can("appointments", "edit") ? (
+                        <Select value={a.status} onValueChange={(v) => onStatus(a.id, v as typeof STATUSES[number])}>
+                          <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {STATUSES.map((s) => <SelectItem key={s} value={s}>{t(`admin.status${s[0].toUpperCase() + s.slice(1)}`)}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : null}
+                      {!a.is_read && can("appointments", "edit") && <Button size="sm" variant="ghost" onClick={() => markRead({ data: { id: a.id } }).then(() => qc.invalidateQueries({ queryKey: ["appts"] }))}>{t("admin.markRead")}</Button>}
+                      {can("appointments", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) del({ data: { id: a.id } }).then(() => qc.invalidateQueries({ queryKey: ["appts"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                     </div>
                   </CardContent>
                 </Card>
