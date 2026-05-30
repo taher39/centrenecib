@@ -58,7 +58,7 @@ function OffersPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.offers")}</h1>
-        <Button onClick={() => setEdit({ title: "", offer_price: 0, ends_at: new Date(Date.now() + 7*86400000).toISOString().slice(0, 16), active: true })}><Plus className="h-4 w-4 me-1" />{t("admin.addOffer")}</Button>
+        {can("offers", "edit") && <Button onClick={() => setEdit({ title: "", offer_price: 0, ends_at: new Date(Date.now() + 7*86400000).toISOString().slice(0, 16), active: true })}><Plus className="h-4 w-4 me-1" />{t("admin.addOffer")}</Button>}
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {(q.data?.items ?? []).map((o) => (
