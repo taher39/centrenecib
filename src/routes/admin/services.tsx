@@ -55,7 +55,7 @@ function AdminServicesPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.services")}</h1>
-        <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6] })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>
+        {can("services", "edit") && <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6] })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>}
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
