@@ -13,6 +13,7 @@ import { Plus, Trash2, Edit, Clock } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/services")({ component: AdminServicesPage });
 
