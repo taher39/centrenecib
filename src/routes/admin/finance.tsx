@@ -17,6 +17,7 @@ export const Route = createFileRoute("/admin/finance")({ component: FinancePage 
 
 function FinancePage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const fn = useServerFn(finance);
   const addFn = useServerFn(addFinanceEntry);
