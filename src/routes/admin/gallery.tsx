@@ -41,7 +41,7 @@ function GalleryPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.gallery")}</h1>
-        <Input type="file" accept="image/*" multiple onChange={async (e) => { for (const f of Array.from(e.target.files ?? [])) await upload(f); e.target.value=""; }} className="max-w-xs" />
+        {can("gallery", "edit") && <Input type="file" accept="image/*" multiple onChange={async (e) => { for (const f of Array.from(e.target.files ?? [])) await upload(f); e.target.value=""; }} className="max-w-xs" />}
       </div>
       {uploading && <div className="text-xs text-muted-foreground">…</div>}
       <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
