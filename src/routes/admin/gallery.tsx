@@ -49,7 +49,7 @@ function GalleryPage() {
           <Card key={g.id} className="overflow-hidden group relative">
             <CardContent className="p-0">
               <img src={g.image_url} alt="" className="h-32 w-full object-cover" />
-              <Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" onClick={() => delFn({ data: { id: g.id } }).then(() => qc.invalidateQueries({ queryKey: ["gallery"] }))}><Trash2 className="h-3 w-3" /></Button>
+              {can("gallery", "delete") && <Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" onClick={() => delFn({ data: { id: g.id } }).then(() => qc.invalidateQueries({ queryKey: ["gallery"] }))}><Trash2 className="h-3 w-3" /></Button>}
             </CardContent>
           </Card>
         ))}
