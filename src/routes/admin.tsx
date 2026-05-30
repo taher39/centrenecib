@@ -53,10 +53,11 @@ function AdminLayout() {
 
   useEffect(() => { if (meQ.isError) navigate({ to: "/admin/login" }); }, [meQ.isError, navigate]);
 
-  const allowed = (scope?: Scope) => {
-    if (!scope) return true;
+  const allowed = (item: { scope?: Scope; adminOnly?: boolean }) => {
+    if (item.adminOnly) return !!meQ.data?.isAdmin;
+    if (!item.scope) return true;
     if (meQ.data?.isAdmin) return true;
-    return (meQ.data?.perms ?? []).some((p) => p.scope === scope && (p.action === "view" || p.action === "edit"));
+    return (meQ.data?.perms ?? []).some((p) => p.scope === item.scope && (p.action === "view" || p.action === "edit"));
   };
 
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
