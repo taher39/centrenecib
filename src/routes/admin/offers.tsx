@@ -26,6 +26,7 @@ type Offer = {
 
 function OffersPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListOffers);
   const saveFn = useServerFn(saveOffer);
