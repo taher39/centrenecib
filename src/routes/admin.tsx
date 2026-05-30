@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin")({
 
 type Scope = "appointments" | "clients" | "services" | "offers" | "gallery" | "invoices" | "finance" | "discounts";
 
-const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope }[] = [
+const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope; adminOnly?: boolean }[] = [
   { to: "/admin", icon: Calendar, label: "nav.appointments", scope: "appointments" },
   { to: "/admin/clients", icon: Users, label: "nav.clients", scope: "clients" },
   { to: "/admin/services", icon: Sparkles, label: "nav.services", scope: "services" },
@@ -34,9 +34,9 @@ const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope }[]
   { to: "/admin/gallery", icon: ImageIcon, label: "nav.gallery", scope: "gallery" },
   { to: "/admin/invoices", icon: ScrollText, label: "nav.invoices", scope: "invoices" },
   { to: "/admin/finance", icon: Wallet, label: "nav.finance", scope: "finance" },
-  { to: "/admin/staff", icon: UserCog, label: "nav.staff" },
-  { to: "/admin/activity", icon: ClipboardList, label: "nav.activity" },
-  { to: "/admin/settings", icon: SettingsIcon, label: "nav.settings" },
+  { to: "/admin/staff", icon: UserCog, label: "nav.staff", adminOnly: true },
+  { to: "/admin/activity", icon: ClipboardList, label: "nav.activity", adminOnly: true },
+  { to: "/admin/settings", icon: SettingsIcon, label: "nav.settings", adminOnly: true },
 ];
 
 function AdminLayout() {
