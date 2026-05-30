@@ -72,8 +72,8 @@ function OffersPage() {
                   <div className="mt-1 text-destructive font-bold">{Number(o.offer_price).toLocaleString()} {t("common.currency")} {o.original_price && <span className="line-through text-xs text-muted-foreground ms-1">{Number(o.original_price).toLocaleString()}</span>}</div>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEdit({ ...o, ends_at: new Date(o.ends_at).toISOString().slice(0, 16) } as Offer)}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: o.id } }).then(() => qc.invalidateQueries({ queryKey: ["offers"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("offers", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit({ ...o, ends_at: new Date(o.ends_at).toISOString().slice(0, 16) } as Offer)}><Edit className="h-4 w-4" /></Button>}
+                  {can("offers", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: o.id } }).then(() => qc.invalidateQueries({ queryKey: ["offers"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </div>
             </CardContent>
