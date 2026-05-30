@@ -26,6 +26,7 @@ type Svc = {
 
 function AdminServicesPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListServices);
   const saveFn = useServerFn(saveService);
