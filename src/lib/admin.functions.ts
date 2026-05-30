@@ -10,6 +10,26 @@ function admin() {
   });
 }
 
+type PermScope = "appointments" | "clients" | "services" | "offers" | "gallery" | "invoices" | "finance" | "discounts";
+type PermAction = "view" | "edit" | "delete";
+
+async function isAdminUser(userId: string) {
+  const sb = admin();
+  const { data } = await sb.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  return !!data;
+}
+
+async function requirePerm(userId: string, scope: PermScope, action: PermAction) {
+  if (await isAdminUser(userId)) return;
+  const sb = admin();
+  const { data } = await sb.from("staff_permissions").select("id").eq("user_id", userId).eq("scope", scope).eq("action", action).maybeSingle();
+  if (!data) throw new Error("Permission refusée");
+}
+
+async function requireAdmin(userId: string) {
+  if (!(await isAdminUser(userId))) throw new Error("Réservé à l'administrateur");
+}
+
 async function logActivity(
   actorId: string,
   actorName: string | null,
