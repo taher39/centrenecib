@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/gallery")({ component: GalleryPage });
 
