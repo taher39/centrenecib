@@ -32,6 +32,7 @@ function statusColor(s: string) {
 
 function AdminAppointmentsPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const fetchFn = useServerFn(adminAppointments);
   const setStatus = useServerFn(setAppointmentStatus);
