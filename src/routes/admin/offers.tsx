@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Plus, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/offers")({ component: OffersPage });
 
@@ -25,6 +26,7 @@ type Offer = {
 
 function OffersPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListOffers);
   const saveFn = useServerFn(saveOffer);
@@ -56,7 +58,7 @@ function OffersPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.offers")}</h1>
-        <Button onClick={() => setEdit({ title: "", offer_price: 0, ends_at: new Date(Date.now() + 7*86400000).toISOString().slice(0, 16), active: true })}><Plus className="h-4 w-4 me-1" />{t("admin.addOffer")}</Button>
+        {can("offers", "edit") && <Button onClick={() => setEdit({ title: "", offer_price: 0, ends_at: new Date(Date.now() + 7*86400000).toISOString().slice(0, 16), active: true })}><Plus className="h-4 w-4 me-1" />{t("admin.addOffer")}</Button>}
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         {(q.data?.items ?? []).map((o) => (
@@ -70,8 +72,8 @@ function OffersPage() {
                   <div className="mt-1 text-destructive font-bold">{Number(o.offer_price).toLocaleString()} {t("common.currency")} {o.original_price && <span className="line-through text-xs text-muted-foreground ms-1">{Number(o.original_price).toLocaleString()}</span>}</div>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEdit({ ...o, ends_at: new Date(o.ends_at).toISOString().slice(0, 16) } as Offer)}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: o.id } }).then(() => qc.invalidateQueries({ queryKey: ["offers"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("offers", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit({ ...o, ends_at: new Date(o.ends_at).toISOString().slice(0, 16) } as Offer)}><Edit className="h-4 w-4" /></Button>}
+                  {can("offers", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: o.id } }).then(() => qc.invalidateQueries({ queryKey: ["offers"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </div>
             </CardContent>

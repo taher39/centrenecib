@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Trash2, Edit, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { InvoicePrintView, openPrintWindow } from "@/components/InvoicePrintView";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/invoices")({ component: InvoicesPage });
 
@@ -26,6 +27,7 @@ type Inv = {
 
 function InvoicesPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListInvoices);
   const updateFn = useServerFn(updateInvoice);
@@ -81,8 +83,8 @@ function InvoicesPage() {
                 </div>
                 <div className="flex gap-1">
                   <Button size="icon" variant="ghost" onClick={() => doPrint(inv)}><Printer className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => setEdit(inv)}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: inv.id } }).then(() => qc.invalidateQueries({ queryKey: ["invoices"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("invoices", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit(inv)}><Edit className="h-4 w-4" /></Button>}
+                  {can("invoices", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: inv.id } }).then(() => qc.invalidateQueries({ queryKey: ["invoices"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </CardContent>
             </Card>

@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin")({
 
 type Scope = "appointments" | "clients" | "services" | "offers" | "gallery" | "invoices" | "finance" | "discounts";
 
-const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope }[] = [
+const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope; adminOnly?: boolean }[] = [
   { to: "/admin", icon: Calendar, label: "nav.appointments", scope: "appointments" },
   { to: "/admin/clients", icon: Users, label: "nav.clients", scope: "clients" },
   { to: "/admin/services", icon: Sparkles, label: "nav.services", scope: "services" },
@@ -34,9 +34,9 @@ const NAV: { to: string; icon: typeof Calendar; label: string; scope?: Scope }[]
   { to: "/admin/gallery", icon: ImageIcon, label: "nav.gallery", scope: "gallery" },
   { to: "/admin/invoices", icon: ScrollText, label: "nav.invoices", scope: "invoices" },
   { to: "/admin/finance", icon: Wallet, label: "nav.finance", scope: "finance" },
-  { to: "/admin/staff", icon: UserCog, label: "nav.staff" },
-  { to: "/admin/activity", icon: ClipboardList, label: "nav.activity" },
-  { to: "/admin/settings", icon: SettingsIcon, label: "nav.settings" },
+  { to: "/admin/staff", icon: UserCog, label: "nav.staff", adminOnly: true },
+  { to: "/admin/activity", icon: ClipboardList, label: "nav.activity", adminOnly: true },
+  { to: "/admin/settings", icon: SettingsIcon, label: "nav.settings", adminOnly: true },
 ];
 
 function AdminLayout() {
@@ -53,10 +53,11 @@ function AdminLayout() {
 
   useEffect(() => { if (meQ.isError) navigate({ to: "/admin/login" }); }, [meQ.isError, navigate]);
 
-  const allowed = (scope?: Scope) => {
-    if (!scope) return true;
+  const allowed = (item: { scope?: Scope; adminOnly?: boolean }) => {
+    if (item.adminOnly) return !!meQ.data?.isAdmin;
+    if (!item.scope) return true;
     if (meQ.data?.isAdmin) return true;
-    return (meQ.data?.perms ?? []).some((p) => p.scope === scope && (p.action === "view" || p.action === "edit"));
+    return (meQ.data?.perms ?? []).some((p) => p.scope === item.scope && (p.action === "view" || p.action === "edit"));
   };
 
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
@@ -74,7 +75,7 @@ function AdminLayout() {
           <button className="md:hidden" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
         </div>
         <nav className="p-2 grid gap-1 overflow-y-auto h-[calc(100vh-4rem-3.5rem)]">
-          {NAV.filter((n) => allowed(n.scope)).map((n) => {
+          {NAV.filter((n) => allowed(n)).map((n) => {
             const active = loc.pathname === n.to || (n.to !== "/admin" && loc.pathname.startsWith(n.to));
             return (
               <Link key={n.to} to={n.to} onClick={() => setOpen(false)} className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${active ? "bg-primary text-primary-foreground" : "hover:bg-sidebar-accent"}`}>

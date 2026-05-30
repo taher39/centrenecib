@@ -10,11 +10,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/gallery")({ component: GalleryPage });
 
 function GalleryPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListGallery);
   const addFn = useServerFn(addGalleryImage);
@@ -39,7 +41,7 @@ function GalleryPage() {
     <div className="grid gap-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.gallery")}</h1>
-        <Input type="file" accept="image/*" multiple onChange={async (e) => { for (const f of Array.from(e.target.files ?? [])) await upload(f); e.target.value=""; }} className="max-w-xs" />
+        {can("gallery", "edit") && <Input type="file" accept="image/*" multiple onChange={async (e) => { for (const f of Array.from(e.target.files ?? [])) await upload(f); e.target.value=""; }} className="max-w-xs" />}
       </div>
       {uploading && <div className="text-xs text-muted-foreground">…</div>}
       <div className="grid gap-2 grid-cols-2 md:grid-cols-4">
@@ -47,7 +49,7 @@ function GalleryPage() {
           <Card key={g.id} className="overflow-hidden group relative">
             <CardContent className="p-0">
               <img src={g.image_url} alt="" className="h-32 w-full object-cover" />
-              <Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" onClick={() => delFn({ data: { id: g.id } }).then(() => qc.invalidateQueries({ queryKey: ["gallery"] }))}><Trash2 className="h-3 w-3" /></Button>
+              {can("gallery", "delete") && <Button size="icon" variant="destructive" className="absolute top-1 end-1 h-7 w-7" onClick={() => delFn({ data: { id: g.id } }).then(() => qc.invalidateQueries({ queryKey: ["gallery"] }))}><Trash2 className="h-3 w-3" /></Button>}
             </CardContent>
           </Card>
         ))}

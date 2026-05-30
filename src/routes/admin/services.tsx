@@ -13,6 +13,7 @@ import { Plus, Trash2, Edit, Clock } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/services")({ component: AdminServicesPage });
 
@@ -25,6 +26,7 @@ type Svc = {
 
 function AdminServicesPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListServices);
   const saveFn = useServerFn(saveService);
@@ -53,7 +55,7 @@ function AdminServicesPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.services")}</h1>
-        <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6] })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>
+        {can("services", "edit") && <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6] })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>}
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -67,8 +69,8 @@ function AdminServicesPage() {
                   <div className="mt-1 flex gap-1">{(s.available_days as number[]).map((d) => <span key={d} className="text-[10px] rounded bg-secondary px-1.5 py-0.5">{DAY_LABELS[d]}</span>)}</div>
                 </div>
                 <div className="flex gap-1">
-                  <Button size="icon" variant="ghost" onClick={() => setEdit({ ...s, description: s.description ?? "" } as Svc)}><Edit className="h-4 w-4" /></Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: s.id } }).then(() => qc.invalidateQueries({ queryKey: ["svc"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  {can("services", "edit") && <Button size="icon" variant="ghost" onClick={() => setEdit({ ...s, description: s.description ?? "" } as Svc)}><Edit className="h-4 w-4" /></Button>}
+                  {can("services", "delete") && <Button size="icon" variant="ghost" onClick={() => { if (confirm("?")) delFn({ data: { id: s.id } }).then(() => qc.invalidateQueries({ queryKey: ["svc"] })); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </div>
             </CardContent>

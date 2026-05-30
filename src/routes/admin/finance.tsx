@@ -11,11 +11,13 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2, TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { usePerms } from "@/hooks/use-perms";
 
 export const Route = createFileRoute("/admin/finance")({ component: FinancePage });
 
 function FinancePage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const fn = useServerFn(finance);
   const addFn = useServerFn(addFinanceEntry);
@@ -38,10 +40,12 @@ function FinancePage() {
         <Card><CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><Wallet className="h-4 w-4" />{t("admin.balance")}</CardTitle></CardHeader><CardContent className="text-2xl font-bold">{Math.round(q.data?.balance ?? 0).toLocaleString()} {t("common.currency")}</CardContent></Card>
       </div>
 
-      <div className="flex gap-2">
-        <Button onClick={() => setAdd({ kind: "income", amount: 0, reason: "" })}><TrendingUp className="h-4 w-4 me-1" />{t("admin.addIncome")}</Button>
-        <Button variant="destructive" onClick={() => setAdd({ kind: "expense", amount: 0, reason: "" })}><TrendingDown className="h-4 w-4 me-1" />{t("admin.addExpense")}</Button>
-      </div>
+      {can("finance", "edit") && (
+        <div className="flex gap-2">
+          <Button onClick={() => setAdd({ kind: "income", amount: 0, reason: "" })}><TrendingUp className="h-4 w-4 me-1" />{t("admin.addIncome")}</Button>
+          <Button variant="destructive" onClick={() => setAdd({ kind: "expense", amount: 0, reason: "" })}><TrendingDown className="h-4 w-4 me-1" />{t("admin.addExpense")}</Button>
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-4">
         <Card>
@@ -50,7 +54,7 @@ function FinancePage() {
             {(q.data?.payments ?? []).map((p) => (
               <div key={p.id} className="flex items-center justify-between border-b pb-1">
                 <span>{p.reason}</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-medium">{Number(p.amount).toLocaleString()}</span><Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "income" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button></span>
+                <span className="flex items-center gap-2"><span className="text-primary font-medium">{Number(p.amount).toLocaleString()}</span>{can("finance", "delete") && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "income" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button>}</span>
               </div>
             ))}
           </CardContent>
@@ -61,7 +65,7 @@ function FinancePage() {
             {(q.data?.expenses ?? []).map((p) => (
               <div key={p.id} className="flex items-center justify-between border-b pb-1">
                 <span>{p.reason}</span>
-                <span className="flex items-center gap-2"><span className="text-destructive font-medium">{Number(p.amount).toLocaleString()}</span><Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "expense" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button></span>
+                <span className="flex items-center gap-2"><span className="text-destructive font-medium">{Number(p.amount).toLocaleString()}</span>{can("finance", "delete") && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => delFn({ data: { id: p.id, kind: "expense" } }).then(() => qc.invalidateQueries({ queryKey: ["finance"] }))}><Trash2 className="h-3 w-3 text-destructive" /></Button>}</span>
               </div>
             ))}
           </CardContent>
