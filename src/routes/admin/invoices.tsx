@@ -27,6 +27,7 @@ type Inv = {
 
 function InvoicesPage() {
   const { t } = useTranslation();
+  const { can } = usePerms();
   const qc = useQueryClient();
   const listFn = useServerFn(adminListInvoices);
   const updateFn = useServerFn(updateInvoice);
