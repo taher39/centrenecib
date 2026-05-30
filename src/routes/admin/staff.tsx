@@ -18,6 +18,56 @@ export const Route = createFileRoute("/admin/staff")({ component: StaffPage });
 const SCOPES = ["appointments", "clients", "services", "offers", "gallery", "invoices", "finance", "discounts"] as const;
 const ACTIONS = ["view", "edit", "delete"] as const;
 
+const setPerm = (s: Set<string>, scope: string, action: string, on: boolean) => {
+  const key = `${scope}:${action}`;
+  const n = new Set(s);
+  if (on) n.add(key); else n.delete(key);
+  return n;
+};
+
+function PermDialog({
+  open, onOpenChange, title, perms, setPerms, onSubmit, children,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  title: string;
+  perms: Set<string>;
+  setPerms: (p: Set<string>) => void;
+  onSubmit: () => void;
+  children?: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          {children}
+          <div>
+            <Label className="text-sm">{t("admin.permissions")}</Label>
+            <table className="mt-2 w-full text-sm">
+              <thead><tr className="text-xs text-muted-foreground"><th className="text-start py-1"></th>{ACTIONS.map((a) => <th key={a} className="py-1">{t(`admin.perm${a[0].toUpperCase() + a.slice(1)}`)}</th>)}</tr></thead>
+              <tbody>
+                {SCOPES.map((s) => (
+                  <tr key={s} className="border-t">
+                    <td className="py-1.5 text-xs">{t(`nav.${s}`)}</td>
+                    {ACTIONS.map((a) => (
+                      <td key={a} className="text-center">
+                        <Checkbox checked={perms.has(`${s}:${a}`)} onCheckedChange={(v) => setPerms(setPerm(perms, s, a, !!v))} />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <DialogFooter><Button onClick={onSubmit}>{t("common.save")}</Button></DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function StaffPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -30,13 +80,6 @@ function StaffPage() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ username: "", password: "", displayName: "", perms: new Set<string>() });
   const [editPerms, setEditPerms] = useState<{ userId: string; displayName: string; perms: Set<string> } | null>(null);
-
-  const setPerm = (s: Set<string>, scope: string, action: string, on: boolean) => {
-    const key = `${scope}:${action}`;
-    const n = new Set(s);
-    if (on) n.add(key); else n.delete(key);
-    return n;
-  };
 
   const submit = async () => {
     try {
@@ -94,36 +137,4 @@ function StaffPage() {
       <PermDialog open={!!editPerms} onOpenChange={(o) => !o && setEditPerms(null)} title={editPerms?.displayName ?? ""} perms={editPerms?.perms ?? new Set()} setPerms={(p) => setEditPerms((e) => e ? { ...e, perms: p } : e)} onSubmit={saveEdit} />
     </div>
   );
-
-  function PermDialog({ open, onOpenChange, title, perms, setPerms, onSubmit, children }: { open: boolean; onOpenChange: (o: boolean) => void; title: string; perms: Set<string>; setPerms: (p: Set<string>) => void; onSubmit: () => void; children?: React.ReactNode }) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
-          <div className="grid gap-3">
-            {children}
-            <div>
-              <Label className="text-sm">{t("admin.permissions")}</Label>
-              <table className="mt-2 w-full text-sm">
-                <thead><tr className="text-xs text-muted-foreground"><th className="text-start py-1"></th>{ACTIONS.map((a) => <th key={a} className="py-1">{t(`admin.perm${a[0].toUpperCase() + a.slice(1)}`)}</th>)}</tr></thead>
-                <tbody>
-                  {SCOPES.map((s) => (
-                    <tr key={s} className="border-t">
-                      <td className="py-1.5 text-xs">{t(`nav.${s}`)}</td>
-                      {ACTIONS.map((a) => (
-                        <td key={a} className="text-center">
-                          <Checkbox checked={perms.has(`${s}:${a}`)} onCheckedChange={(v) => setPerms(setPerm(perms, s, a, !!v))} />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <DialogFooter><Button onClick={onSubmit}>{t("common.save")}</Button></DialogFooter>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 }
