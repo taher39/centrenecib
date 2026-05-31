@@ -107,7 +107,7 @@ function OffersPage() {
               <div className="flex items-center gap-2"><Switch checked={edit.active !== false} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /><Label>Actif</Label></div>
             </div>
           )}
-          <DialogFooter><Button onClick={onSave}>{t("common.save")}</Button></DialogFooter>
+          <DialogFooter><Button onClick={onSave} disabled={uploading}>{uploading ? "…" : t("common.save")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
