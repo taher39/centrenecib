@@ -21,13 +21,13 @@ function SettingsPage() {
   const saveFn = useServerFn(saveSettings);
   const credFn = useServerFn(updateMyCredentials);
   const q = useQuery({ queryKey: ["settings"], queryFn: () => getFn() });
-  const [form, setForm] = useState<S>({ name: "Centre Nassib", address: "", phone: "", email: "", nif: "", nis: "", rc: "", article: "", ai: "" });
+  const [form, setForm] = useState<S>({ name: "CENTRE NECIB", address: "", phone: "", email: "", nif: "", nis: "", rc: "", article: "", ai: "" });
   const [cred, setCred] = useState({ newDisplayName: "", newUsername: "", newPassword: "" });
 
   useEffect(() => {
     if (q.data?.settings) {
       const s = q.data.settings;
-      setForm({ name: s.name ?? "Centre Nassib", address: s.address ?? "", phone: s.phone ?? "", email: s.email ?? "", nif: s.nif ?? "", nis: s.nis ?? "", rc: s.rc ?? "", article: s.article ?? "", ai: s.ai ?? "" });
+      setForm({ name: s.name ?? "CENTRE NECIB", address: s.address ?? "", phone: s.phone ?? "", email: s.email ?? "", nif: s.nif ?? "", nis: s.nis ?? "", rc: s.rc ?? "", article: s.article ?? "", ai: s.ai ?? "" });
     }
   }, [q.data]);
 
