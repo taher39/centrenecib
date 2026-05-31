@@ -46,11 +46,17 @@ function OffersPage() {
   const upload = async (f: File) => {
     setUploading(true);
     try {
-      const path = `${Date.now()}-${f.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
-      const { error } = await supabase.storage.from("offers").upload(path, f);
+      const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("offers").upload(path, f, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: f.type || undefined,
+      });
       if (error) throw error;
       const { data } = supabase.storage.from("offers").getPublicUrl(path);
       setEdit((p) => p ? { ...p, image_url: data.publicUrl } : p);
+      toast.success("✓");
     } catch (e) { toast.error((e as Error).message); } finally { setUploading(false); }
   };
 
