@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listServices, book, loginByCode } from "@/lib/booking.functions";
+import { listServices, book, loginByCode, listPublic } from "@/lib/booking.functions";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
