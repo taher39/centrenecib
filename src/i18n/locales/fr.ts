@@ -1,5 +1,5 @@
 export default {
-  brand: { name: "Centre Nassib", tagline: "Esthétique & Soins de la peau", exclusive: "Exclusivement pour femmes" },
+  brand: { name: "CENTRE NECIB", tagline: "Esthétique & Soins de la peau", exclusive: "Exclusivement pour femmes" },
   nav: { home: "Accueil", appointments: "Rendez-vous", clients: "Clientes", services: "Soins", invoices: "Factures", finance: "Comptabilité", offers: "Offres", gallery: "Galerie", staff: "Secrétaires", activity: "Journal d'activité", settings: "Paramètres", logout: "Déconnexion" },
   common: { save: "Enregistrer", cancel: "Annuler", confirm: "Confirmer", delete: "Supprimer", edit: "Modifier", add: "Ajouter", search: "Rechercher", loading: "Chargement…", today: "Aujourd'hui", tomorrow: "Demain", currency: "DA", back: "Retour", actions: "Actions", date: "Date", time: "Heure", price: "Prix", duration: "Durée", minutes: "min", name: "Nom", phone: "Téléphone", age: "Âge", notes: "Notes", total: "Total", required: "Champ requis", install: "Installer l'app", language: "Langue" },
   client: {

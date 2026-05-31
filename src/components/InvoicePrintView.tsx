@@ -38,7 +38,7 @@ export function InvoicePrintView({ invoice, settings }: { invoice: Inv; settings
     <div style={{ direction: "ltr", maxWidth: 800, margin: "0 auto", fontFamily: "Cormorant Garamond, serif" }}>
       <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "2px solid #1f6a4d", paddingBottom: 12 }}>
         <div>
-          <div style={{ fontSize: 24, fontWeight: 700, color: "#1f6a4d" }}>{settings?.name ?? "Centre Nassib"}</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: "#1f6a4d" }}>{settings?.name ?? "CENTRE NECIB"}</div>
           {settings?.address && <div style={{ fontSize: 12 }}>{settings.address}</div>}
           {settings?.phone && <div style={{ fontSize: 12 }}>Tél: {settings.phone}</div>}
           {settings?.email && <div style={{ fontSize: 12 }}>{settings.email}</div>}

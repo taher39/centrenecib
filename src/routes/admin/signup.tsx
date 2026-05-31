@@ -32,7 +32,7 @@ function SignupPage() {
   return (
     <div className="min-h-screen bg-rose-gradient flex flex-col items-center px-4 pt-16">
       <Logo size={60} />
-      <div className="font-display text-xl text-primary mt-3">Centre Nassib</div>
+      <div className="font-display text-xl text-primary mt-3">CENTRE NECIB</div>
       <Card className="mt-6 w-full max-w-md">
         <CardContent className="p-6 grid gap-4">
           <h1 className="font-display text-2xl text-primary">Configuration initiale</h1>

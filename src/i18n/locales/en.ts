@@ -1,5 +1,5 @@
 export default {
-  brand: { name: "Nassib Center", tagline: "Aesthetic & Skincare", exclusive: "Exclusively for women" },
+  brand: { name: "CENTRE NECIB", tagline: "Aesthetic & Skincare", exclusive: "Exclusively for women" },
   nav: { home: "Home", appointments: "Appointments", clients: "Clients", services: "Services", invoices: "Invoices", finance: "Finance", offers: "Offers", gallery: "Gallery", staff: "Staff", activity: "Activity log", settings: "Settings", logout: "Sign out" },
   common: { save: "Save", cancel: "Cancel", confirm: "Confirm", delete: "Delete", edit: "Edit", add: "Add", search: "Search", loading: "Loading…", today: "Today", tomorrow: "Tomorrow", currency: "DZD", back: "Back", actions: "Actions", date: "Date", time: "Time", price: "Price", duration: "Duration", minutes: "min", name: "Name", phone: "Phone", age: "Age", notes: "Notes", total: "Total", required: "Required field", install: "Install app", language: "Language" },
   client: {
