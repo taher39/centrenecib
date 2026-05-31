@@ -57,6 +57,10 @@ function BookPage() {
 
   const svcQuery = useQuery({ queryKey: ["services-public"], queryFn: () => fetchServices() });
   const services = svcQuery.data?.services ?? [];
+  const fetchPublic = useServerFn(listPublic);
+  const pubQuery = useQuery({ queryKey: ["public-feed"], queryFn: () => fetchPublic() });
+  const offers = pubQuery.data?.offers ?? [];
+  const gallery = pubQuery.data?.gallery ?? [];
 
   // Generate next 21 days, then filter per service by available_days
   const next21 = useMemo(() => {
