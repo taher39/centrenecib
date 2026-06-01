@@ -171,32 +171,29 @@ function BookPage() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
 
-        {gallery.length > 0 && (
-          <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-card/50">
-            <div className="marquee-track flex gap-3 py-3 w-fit">
-              {[...gallery, ...gallery].map((g, i) => (
-                <img key={i} src={g.image_url} alt={g.caption ?? ""} className="h-24 w-36 rounded-xl object-cover" />
-              ))}
-            </div>
-          </div>
-        )}
+        {gallery.length > 0 && <GalleryCarousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} />}
 
         {offers.length > 0 && (
-          <div className="mb-4 grid gap-3">
+          <div className="mt-4 mb-4 grid gap-3">
             {offers.map((o) => (
-              <div key={o.id} className="offer-banner rounded-2xl p-4">
+              <button
+                key={o.id}
+                onClick={() => setOfferModal({ offerId: o.id, title: o.title, date: "" })}
+                className="offer-banner rounded-2xl p-4 text-start transition hover:scale-[1.01] active:scale-[0.99]"
+              >
                 <div className="flex items-center gap-3">
                   {o.image_url && <img src={o.image_url} alt="" className="h-16 w-16 rounded-xl object-cover" />}
                   <div className="flex-1">
                     <div className="font-display text-lg font-bold">{o.title}</div>
                     {o.description && <div className="text-xs opacity-80">{o.description}</div>}
+                    <div className="mt-1 text-[11px] underline opacity-90">{t("client.bookThisOffer") || "احجز هذا العرض"}</div>
                   </div>
                   <div className="text-end">
                     {o.original_price && <div className="text-xs line-through opacity-60">{Number(o.original_price).toLocaleString()}</div>}
                     <div className="text-xl font-bold text-destructive">{Number(o.offer_price).toLocaleString()} {t("common.currency")}</div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
