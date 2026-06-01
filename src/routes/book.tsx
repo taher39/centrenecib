@@ -259,6 +259,89 @@ function BookPage() {
         </div>
 
       </main>
+
+      <Dialog open={!!offerModal} onOpenChange={(o) => !o && setOfferModal(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{offerModal?.title}</DialogTitle></DialogHeader>
+          <div className="grid gap-3">
+            <div className="text-sm text-muted-foreground">{t("client.pickOfferDate") || "اختر اليوم المناسب — سيقوم الإدارة بتحديد الساعة"}</div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {next21.slice(0, 14).map((d) => {
+                const sel = offerModal?.date === d.value;
+                return (
+                  <button
+                    key={d.value}
+                    onClick={() => setOfferModal((p) => p ? { ...p, date: d.value } : p)}
+                    className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
+                  >
+                    {d.dayLabel}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={!offerModal?.date}
+              onClick={async () => {
+                if (!offerModal?.date) return;
+                try {
+                  const payload = clientInfo?.id
+                    ? { offerId: offerModal.offerId, date: offerModal.date, clientId: clientInfo.id }
+                    : { offerId: offerModal.offerId, date: offerModal.date, fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone! };
+                  const res = await bookOfferFn({ data: payload });
+                  if (res.code) localStorage.setItem("nassib_code", res.code);
+                  localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
+                  setOfferModal(null);
+                  setConfirmation({ code: res.code, isNew: res.isNew, clientId: res.clientId, appointments: [{ serviceName: res.offerTitle, time: "—", date: res.date }] });
+                } catch (e) { toast.error((e as Error).message); }
+              }}
+            >
+              {t("client.book")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function GalleryCarousel({ images }: { images: { url: string; caption?: string | null }[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" }, [Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })]);
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSel = () => setIdx(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSel);
+    onSel();
+    return () => { emblaApi.off("select", onSel); };
+  }, [emblaApi]);
+  return (
+    <div className="relative mb-4 overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-soft">
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex">
+          {images.map((g, i) => (
+            <div key={i} className="min-w-0 shrink-0 grow-0 basis-full">
+              <img src={g.url} alt={g.caption ?? ""} className="h-56 sm:h-72 w-full object-cover" draggable={false} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {images.length > 1 && (
+        <>
+          <button type="button" aria-label="prev" onClick={() => emblaApi?.scrollPrev()} className="absolute start-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button type="button" aria-label="next" onClick={() => emblaApi?.scrollNext()} className="absolute end-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+            {images.map((_, i) => (
+              <button key={i} aria-label={`go to ${i + 1}`} onClick={() => emblaApi?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 bg-primary" : "w-1.5 bg-background/70"}`} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
