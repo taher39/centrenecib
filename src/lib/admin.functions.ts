@@ -126,11 +126,9 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
       appointment_date?: string;
       appointment_time?: string;
     } = { status: data.status, is_read: true };
-    if (data.status === "postponed" && data.newDate && data.newTime) {
-      update.appointment_date = data.newDate;
-      update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
-    }
-    const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd)").single();
+    if (data.newDate) update.appointment_date = data.newDate;
+    if (data.newTime) update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
+    const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd), offers(title, offer_price)").single();
 
     // Auto-generate invoice on completion
     if (data.status === "completed" && appt) {
