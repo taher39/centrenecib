@@ -389,6 +389,65 @@ export const deleteOffer = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const uploadAdminImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        bucket: z.enum(["gallery", "offers"]),
+        fileName: z.string().min(1).max(200),
+        mimeType: z.string().min(1).max(120),
+        dataUrl: z.string().min(32).max(12_000_000),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    const scope = data.bucket === "gallery" ? "gallery" : "offers";
+    await requirePerm(context.userId, scope, "edit");
+
+    const match = data.dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) throw new Error("Image invalide");
+
+    const mimeType = match[1].toLowerCase();
+    const base64 = match[2];
+    const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
+    if (!allowedMimeTypes.has(mimeType)) {
+      throw new Error("Format d'image non pris en charge");
+    }
+
+    const bytes = Buffer.from(base64, "base64");
+    if (!bytes.byteLength) throw new Error("Image vide");
+    if (bytes.byteLength > 6 * 1024 * 1024) {
+      throw new Error("L'image dépasse la taille autorisée");
+    }
+
+    const extByMime: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/avif": "avif",
+    };
+    const safeBaseName = data.fileName
+      .replace(/\.[^.]+$/, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "image";
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeBaseName}.${extByMime[mimeType]}`;
+
+    const sb = admin();
+    const { error } = await sb.storage.from(data.bucket).upload(path, bytes, {
+      cacheControl: "3600",
+      contentType: mimeType,
+      upsert: false,
+    });
+    if (error) throw new Error(error.message);
+
+    const { data: publicData } = sb.storage.from(data.bucket).getPublicUrl(path);
+    return { url: publicData.publicUrl, path };
+  });
+
 // ===== Gallery =====
 export const adminListGallery = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

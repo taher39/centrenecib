@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminListOffers, saveOffer, deleteOffer } from "@/lib/admin.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { adminListOffers, saveOffer, deleteOffer, uploadAdminImage } from "@/lib/admin.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +30,7 @@ function OffersPage() {
   const listFn = useServerFn(adminListOffers);
   const saveFn = useServerFn(saveOffer);
   const delFn = useServerFn(deleteOffer);
+  const uploadImageFn = useServerFn(uploadAdminImage);
   const q = useQuery({ queryKey: ["offers"], queryFn: () => listFn() });
   const [edit, setEdit] = useState<Offer | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -46,16 +46,21 @@ function OffersPage() {
   const upload = async (f: File) => {
     setUploading(true);
     try {
-      const ext = f.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("offers").upload(path, f, {
-        cacheControl: "3600",
-        upsert: false,
-        contentType: f.type || undefined,
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result ?? ""));
+        reader.onerror = () => reject(new Error("تعذر قراءة الصورة"));
+        reader.readAsDataURL(f);
       });
-      if (error) throw error;
-      const { data } = supabase.storage.from("offers").getPublicUrl(path);
-      setEdit((p) => p ? { ...p, image_url: data.publicUrl } : p);
+      const res = await uploadImageFn({
+        data: {
+          bucket: "offers",
+          fileName: f.name,
+          mimeType: f.type || "image/jpeg",
+          dataUrl,
+        },
+      });
+      setEdit((p) => p ? { ...p, image_url: res.url } : p);
       toast.success("✓");
     } catch (e) { toast.error((e as Error).message); } finally { setUploading(false); }
   };

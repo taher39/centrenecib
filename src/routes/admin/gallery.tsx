@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminListGallery, addGalleryImage, deleteGalleryImage } from "@/lib/admin.functions";
-import { supabase } from "@/integrations/supabase/client";
+import { adminListGallery, addGalleryImage, deleteGalleryImage, uploadAdminImage } from "@/lib/admin.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,17 +20,28 @@ function GalleryPage() {
   const listFn = useServerFn(adminListGallery);
   const addFn = useServerFn(addGalleryImage);
   const delFn = useServerFn(deleteGalleryImage);
+  const uploadImageFn = useServerFn(uploadAdminImage);
   const q = useQuery({ queryKey: ["gallery"], queryFn: () => listFn() });
   const [uploading, setUploading] = useState(false);
 
   const upload = async (f: File) => {
     setUploading(true);
     try {
-      const path = `${Date.now()}-${f.name.replace(/[^a-zA-Z0-9.]/g, "_")}`;
-      const { error } = await supabase.storage.from("gallery").upload(path, f);
-      if (error) throw error;
-      const { data } = supabase.storage.from("gallery").getPublicUrl(path);
-      await addFn({ data: { image_url: data.publicUrl } });
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result ?? ""));
+        reader.onerror = () => reject(new Error("تعذر قراءة الصورة"));
+        reader.readAsDataURL(f);
+      });
+      const res = await uploadImageFn({
+        data: {
+          bucket: "gallery",
+          fileName: f.name,
+          mimeType: f.type || "image/jpeg",
+          dataUrl,
+        },
+      });
+      await addFn({ data: { image_url: res.url } });
       qc.invalidateQueries({ queryKey: ["gallery"] });
       toast.success("✓");
     } catch (e) { toast.error((e as Error).message); } finally { setUploading(false); }
