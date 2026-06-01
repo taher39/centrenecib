@@ -99,7 +99,7 @@ export const adminAppointments = createServerFn({ method: "GET" })
     const sb = admin();
     const { data } = await sb
       .from("appointments")
-      .select("*, clients(id, full_name, phone, code), services(id, name, price_dzd, duration_min)")
+      .select("*, clients(id, full_name, phone, code), services(id, name, price_dzd, duration_min), offers(id, title, offer_price)")
       .order("appointment_date", { ascending: false })
       .order("appointment_time", { ascending: true });
     return { items: data ?? [] };
