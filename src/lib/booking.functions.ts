@@ -158,7 +158,7 @@ export const clientDashboard = createServerFn({ method: "POST" })
       sb.from("clients").select("*").eq("id", data.clientId).maybeSingle(),
       sb
         .from("appointments")
-        .select("*, services(name, price_dzd, duration_min)")
+        .select("*, services(name, price_dzd, duration_min), offers(title, offer_price)")
         .eq("client_id", data.clientId)
         .order("appointment_date", { ascending: false })
         .order("appointment_time", { ascending: false }),
@@ -170,4 +170,56 @@ export const clientDashboard = createServerFn({ method: "POST" })
     );
     const past = (appts ?? []).filter((a) => !upcoming.includes(a));
     return { client, upcoming, past, invoices: invoices ?? [] };
+  });
+
+// Book an offer: creates an appointment with offer_id; admin sets the time later
+export const bookOffer = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        offerId: z.string().uuid(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        clientId: z.string().uuid().optional(),
+        fullName: z.string().min(2).max(120).optional(),
+        age: z.number().int().min(8).max(110).optional(),
+        phone: z.string().min(6).max(30).optional(),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data }) => {
+    const sb = admin();
+    const { data: offer } = await sb.from("offers").select("*").eq("id", data.offerId).maybeSingle();
+    if (!offer || !offer.active) throw new Error("Offre introuvable");
+
+    let clientId = data.clientId;
+    let code: string | null = null;
+    let isNew = false;
+    if (!clientId) {
+      if (!data.fullName || !data.phone) throw new Error("Informations manquantes");
+      const { data: genCode } = await sb.rpc("generate_client_code");
+      code = genCode as string;
+      const { data: created, error } = await sb
+        .from("clients")
+        .insert({ full_name: data.fullName, age: data.age ?? null, phone: data.phone, code })
+        .select()
+        .single();
+      if (error || !created) throw new Error(error?.message ?? "Erreur création");
+      clientId = created.id;
+      isNew = true;
+    } else {
+      const { data: existing } = await sb.from("clients").select("code").eq("id", clientId).single();
+      code = existing?.code ?? null;
+    }
+
+    const { error: insertErr } = await sb.from("appointments").insert({
+      client_id: clientId!,
+      offer_id: data.offerId,
+      appointment_date: data.date,
+      appointment_time: null,
+      status: "pending",
+      notes: `Offre: ${offer.title}`,
+    });
+    if (insertErr) throw new Error(insertErr.message);
+
+    return { clientId, code, isNew, offerTitle: offer.title, date: data.date };
   });
