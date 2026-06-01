@@ -50,40 +50,43 @@ export type Database = {
       appointments: {
         Row: {
           appointment_date: string
-          appointment_time: string
+          appointment_time: string | null
           client_id: string
           created_at: string
           group_id: string | null
           id: string
           is_read: boolean
           notes: string | null
-          service_id: string
+          offer_id: string | null
+          service_id: string | null
           status: Database["public"]["Enums"]["appointment_status"]
           updated_at: string
         }
         Insert: {
           appointment_date: string
-          appointment_time: string
+          appointment_time?: string | null
           client_id: string
           created_at?: string
           group_id?: string | null
           id?: string
           is_read?: boolean
           notes?: string | null
-          service_id: string
+          offer_id?: string | null
+          service_id?: string | null
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
         }
         Update: {
           appointment_date?: string
-          appointment_time?: string
+          appointment_time?: string | null
           client_id?: string
           created_at?: string
           group_id?: string | null
           id?: string
           is_read?: boolean
           notes?: string | null
-          service_id?: string
+          offer_id?: string | null
+          service_id?: string | null
           status?: Database["public"]["Enums"]["appointment_status"]
           updated_at?: string
         }

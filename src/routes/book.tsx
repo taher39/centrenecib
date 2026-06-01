@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listServices, book, loginByCode, listPublic } from "@/lib/booking.functions";
+import { listServices, book, loginByCode, listPublic, bookOffer } from "@/lib/booking.functions";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Logo } from "@/components/Logo";
@@ -11,9 +11,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Check, Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
 
@@ -26,6 +29,7 @@ function BookPage() {
   const navigate = useNavigate();
   const fetchServices = useServerFn(listServices);
   const bookFn = useServerFn(book);
+  const bookOfferFn = useServerFn(bookOffer);
   const codeLoginFn = useServerFn(loginByCode);
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string } | null>(null);
@@ -33,6 +37,7 @@ function BookPage() {
   // Per-service chosen date
   const [dates, setDates] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
+  const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
 
   // Restore client from localStorage
   useEffect(() => {
@@ -168,32 +173,29 @@ function BookPage() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
 
-        {gallery.length > 0 && (
-          <div className="mb-4 overflow-hidden rounded-2xl border border-border/60 bg-card/50">
-            <div className="marquee-track flex gap-3 py-3 w-fit">
-              {[...gallery, ...gallery].map((g, i) => (
-                <img key={i} src={g.image_url} alt={g.caption ?? ""} className="h-24 w-36 rounded-xl object-cover" />
-              ))}
-            </div>
-          </div>
-        )}
+        {gallery.length > 0 && <GalleryCarousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} />}
 
         {offers.length > 0 && (
-          <div className="mb-4 grid gap-3">
+          <div className="mt-4 mb-4 grid gap-3">
             {offers.map((o) => (
-              <div key={o.id} className="offer-banner rounded-2xl p-4">
+              <button
+                key={o.id}
+                onClick={() => setOfferModal({ offerId: o.id, title: o.title, date: "" })}
+                className="offer-banner rounded-2xl p-4 text-start transition hover:scale-[1.01] active:scale-[0.99]"
+              >
                 <div className="flex items-center gap-3">
                   {o.image_url && <img src={o.image_url} alt="" className="h-16 w-16 rounded-xl object-cover" />}
                   <div className="flex-1">
                     <div className="font-display text-lg font-bold">{o.title}</div>
                     {o.description && <div className="text-xs opacity-80">{o.description}</div>}
+                    <div className="mt-1 text-[11px] underline opacity-90">{t("client.bookThisOffer") || "احجز هذا العرض"}</div>
                   </div>
                   <div className="text-end">
                     {o.original_price && <div className="text-xs line-through opacity-60">{Number(o.original_price).toLocaleString()}</div>}
                     <div className="text-xl font-bold text-destructive">{Number(o.offer_price).toLocaleString()} {t("common.currency")}</div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -257,6 +259,89 @@ function BookPage() {
         </div>
 
       </main>
+
+      <Dialog open={!!offerModal} onOpenChange={(o) => !o && setOfferModal(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{offerModal?.title}</DialogTitle></DialogHeader>
+          <div className="grid gap-3">
+            <div className="text-sm text-muted-foreground">{t("client.pickOfferDate") || "اختر اليوم المناسب — سيقوم الإدارة بتحديد الساعة"}</div>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {next21.slice(0, 14).map((d) => {
+                const sel = offerModal?.date === d.value;
+                return (
+                  <button
+                    key={d.value}
+                    onClick={() => setOfferModal((p) => p ? { ...p, date: d.value } : p)}
+                    className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
+                  >
+                    {d.dayLabel}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              disabled={!offerModal?.date}
+              onClick={async () => {
+                if (!offerModal?.date) return;
+                try {
+                  const payload = clientInfo?.id
+                    ? { offerId: offerModal.offerId, date: offerModal.date, clientId: clientInfo.id }
+                    : { offerId: offerModal.offerId, date: offerModal.date, fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone! };
+                  const res = await bookOfferFn({ data: payload });
+                  if (res.code) localStorage.setItem("nassib_code", res.code);
+                  localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
+                  setOfferModal(null);
+                  setConfirmation({ code: res.code, isNew: res.isNew, clientId: res.clientId, appointments: [{ serviceName: res.offerTitle, time: "—", date: res.date }] });
+                } catch (e) { toast.error((e as Error).message); }
+              }}
+            >
+              {t("client.book")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function GalleryCarousel({ images }: { images: { url: string; caption?: string | null }[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" }, [Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })]);
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSel = () => setIdx(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSel);
+    onSel();
+    return () => { emblaApi.off("select", onSel); };
+  }, [emblaApi]);
+  return (
+    <div className="relative mb-4 overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-soft">
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex">
+          {images.map((g, i) => (
+            <div key={i} className="min-w-0 shrink-0 grow-0 basis-full">
+              <img src={g.url} alt={g.caption ?? ""} className="h-56 sm:h-72 w-full object-cover" draggable={false} />
+            </div>
+          ))}
+        </div>
+      </div>
+      {images.length > 1 && (
+        <>
+          <button type="button" aria-label="prev" onClick={() => emblaApi?.scrollPrev()} className="absolute start-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button type="button" aria-label="next" onClick={() => emblaApi?.scrollNext()} className="absolute end-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
+            <ChevronRight className="h-5 w-5" />
+          </button>
+          <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+            {images.map((_, i) => (
+              <button key={i} aria-label={`go to ${i + 1}`} onClick={() => emblaApi?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 bg-primary" : "w-1.5 bg-background/70"}`} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

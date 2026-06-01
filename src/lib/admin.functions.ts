@@ -99,7 +99,7 @@ export const adminAppointments = createServerFn({ method: "GET" })
     const sb = admin();
     const { data } = await sb
       .from("appointments")
-      .select("*, clients(id, full_name, phone, code), services(id, name, price_dzd, duration_min)")
+      .select("*, clients(id, full_name, phone, code), services(id, name, price_dzd, duration_min), offers(id, title, offer_price)")
       .order("appointment_date", { ascending: false })
       .order("appointment_time", { ascending: true });
     return { items: data ?? [] };
@@ -126,20 +126,19 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
       appointment_date?: string;
       appointment_time?: string;
     } = { status: data.status, is_read: true };
-    if (data.status === "postponed" && data.newDate && data.newTime) {
-      update.appointment_date = data.newDate;
-      update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
-    }
-    const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd)").single();
+    if (data.newDate) update.appointment_date = data.newDate;
+    if (data.newTime) update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
+    const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd), offers(title, offer_price)").single();
 
     // Auto-generate invoice on completion
     if (data.status === "completed" && appt) {
-      const price = Number((appt as { services?: { price_dzd?: number } }).services?.price_dzd ?? 0);
-      const svcName = (appt as { services?: { name?: string } }).services?.name ?? "Soin";
+      const a = appt as { services?: { name?: string; price_dzd?: number }; offers?: { title?: string; offer_price?: number }; client_id: string };
+      const price = Number(a.offers?.offer_price ?? a.services?.price_dzd ?? 0);
+      const svcName = a.offers?.title ?? a.services?.name ?? "Soin";
       const { data: inv } = await sb
         .from("invoices")
         .insert({
-          client_id: (appt as { client_id: string }).client_id,
+          client_id: a.client_id,
           appointment_id: data.id,
           subtotal: price,
           total: price,
