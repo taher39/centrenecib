@@ -57,11 +57,11 @@ function AdminAppointmentsPage() {
 
   const newCount = items.filter((a) => !a.is_read && a.status === "pending").length;
 
-  const [postpone, setPostpone] = useState<{ id: string; date: string; time: string } | null>(null);
+  const [postpone, setPostpone] = useState<{ id: string; date: string; time: string; status?: typeof STATUSES[number] } | null>(null);
 
   const onStatus = async (id: string, status: typeof STATUSES[number]) => {
     if (status === "postponed") {
-      setPostpone({ id, date: today, time: "09:00" });
+      setPostpone({ id, date: today, time: "09:00", status: "postponed" });
       return;
     }
     try { await setStatus({ data: { id, status } }); qc.invalidateQueries({ queryKey: ["appts"] }); toast.success("✓"); }
@@ -70,7 +70,7 @@ function AdminAppointmentsPage() {
 
   const submitPostpone = async () => {
     if (!postpone) return;
-    try { await setStatus({ data: { id: postpone.id, status: "postponed", newDate: postpone.date, newTime: postpone.time } }); setPostpone(null); qc.invalidateQueries({ queryKey: ["appts"] }); }
+    try { await setStatus({ data: { id: postpone.id, status: postpone.status ?? "postponed", newDate: postpone.date, newTime: postpone.time } }); setPostpone(null); qc.invalidateQueries({ queryKey: ["appts"] }); }
     catch (e) { toast.error((e as Error).message); }
   };
 
