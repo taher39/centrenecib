@@ -96,17 +96,31 @@ function AdminAppointmentsPage() {
             {list.map((a) => {
               const client = (a as { clients?: { full_name?: string; phone?: string; code?: string } }).clients;
               const svc = (a as { services?: { name?: string; price_dzd?: number; duration_min?: number } }).services;
+              const off = (a as { offers?: { title?: string; offer_price?: number } }).offers;
+              const title = svc?.name ?? off?.title ?? "—";
+              const price = svc?.price_dzd ?? off?.offer_price ?? 0;
+              const timeStr = a.appointment_time ? String(a.appointment_time).slice(0, 5) : "— : —";
+              const needsTime = !a.appointment_time;
               return (
                 <Card key={a.id} className={!a.is_read && a.status === "pending" ? "border-pending" : ""}>
                   <CardContent className="p-4 grid gap-3 md:grid-cols-[1fr_auto_auto] items-center">
                     <div>
                       <div className="font-semibold">{client?.full_name} <span className="text-xs text-muted-foreground font-mono">· {client?.code}</span></div>
                       <div className="text-xs text-muted-foreground">{client?.phone}</div>
-                      <div className="mt-1 text-sm">{svc?.name} · <span className="text-muted-foreground">{svc?.duration_min}min · {Number(svc?.price_dzd ?? 0).toLocaleString()} {t("common.currency")}</span></div>
-                      <div className="text-sm font-medium">{a.appointment_date} · {String(a.appointment_time).slice(0, 5)}</div>
+                      <div className="mt-1 text-sm">
+                        {off ? <Badge className="bg-destructive text-destructive-foreground me-1">{t("nav.offers")}</Badge> : null}
+                        {title} · <span className="text-muted-foreground">{svc?.duration_min ? `${svc.duration_min}min · ` : ""}{Number(price).toLocaleString()} {t("common.currency")}</span>
+                      </div>
+                      <div className="text-sm font-medium">{a.appointment_date} · {timeStr}</div>
+                      {needsTime && <div className="text-xs text-destructive mt-1">⚠ {t("admin.setTimeNeeded") || "Définir l'heure"}</div>}
                     </div>
                     <Badge className={statusColor(a.status)}>{t(`admin.status${a.status[0].toUpperCase() + a.status.slice(1)}`)}</Badge>
                     <div className="flex items-center gap-2 flex-wrap">
+                      {needsTime && can("appointments", "edit") && (
+                        <Button size="sm" variant="outline" onClick={() => setPostpone({ id: a.id, date: a.appointment_date, time: "09:00" })}>
+                          {t("common.time") || "Heure"}
+                        </Button>
+                      )}
                       {can("appointments", "edit") ? (
                         <Select value={a.status} onValueChange={(v) => onStatus(a.id, v as typeof STATUSES[number])}>
                           <SelectTrigger className="h-8 w-32"><SelectValue /></SelectTrigger>
