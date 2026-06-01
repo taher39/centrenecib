@@ -29,6 +29,7 @@ function BookPage() {
   const navigate = useNavigate();
   const fetchServices = useServerFn(listServices);
   const bookFn = useServerFn(book);
+  const bookOfferFn = useServerFn(bookOffer);
   const codeLoginFn = useServerFn(loginByCode);
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string } | null>(null);
@@ -36,6 +37,7 @@ function BookPage() {
   // Per-service chosen date
   const [dates, setDates] = useState<Record<string, string>>({});
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
+  const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
 
   // Restore client from localStorage
   useEffect(() => {
