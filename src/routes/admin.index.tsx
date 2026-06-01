@@ -117,7 +117,7 @@ function AdminAppointmentsPage() {
                     <Badge className={statusColor(a.status)}>{t(`admin.status${a.status[0].toUpperCase() + a.status.slice(1)}`)}</Badge>
                     <div className="flex items-center gap-2 flex-wrap">
                       {needsTime && can("appointments", "edit") && (
-                        <Button size="sm" variant="outline" onClick={() => setPostpone({ id: a.id, date: a.appointment_date, time: "09:00" })}>
+                        <Button size="sm" variant="outline" onClick={() => setPostpone({ id: a.id, date: a.appointment_date, time: "09:00", status: "confirmed" })}>
                           {t("common.time") || "Heure"}
                         </Button>
                       )}
