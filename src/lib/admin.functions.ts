@@ -132,12 +132,13 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
 
     // Auto-generate invoice on completion
     if (data.status === "completed" && appt) {
-      const price = Number((appt as { services?: { price_dzd?: number } }).services?.price_dzd ?? 0);
-      const svcName = (appt as { services?: { name?: string } }).services?.name ?? "Soin";
+      const a = appt as { services?: { name?: string; price_dzd?: number }; offers?: { title?: string; offer_price?: number }; client_id: string };
+      const price = Number(a.offers?.offer_price ?? a.services?.price_dzd ?? 0);
+      const svcName = a.offers?.title ?? a.services?.name ?? "Soin";
       const { data: inv } = await sb
         .from("invoices")
         .insert({
-          client_id: (appt as { client_id: string }).client_id,
+          client_id: a.client_id,
           appointment_id: data.id,
           subtotal: price,
           total: price,
