@@ -47,6 +47,7 @@ function AdminAppointmentsPage() {
   const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
 
   const filtered = useMemo(() => ({
+    new: items.filter((a) => a.status === "pending"),
     today: items.filter((a) => a.appointment_date === today),
     tomorrow: items.filter((a) => a.appointment_date === tmw),
     week: items.filter((a) => a.appointment_date >= today && a.appointment_date <= weekEnd),
