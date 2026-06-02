@@ -1,0 +1,17 @@
+{
+  "name": "CENTRE NECIB — Admin",
+  "short_name": "NECIB Admin",
+  "description": "Espace administration CENTRE NECIB",
+  "start_url": "/admin",
+  "scope": "/",
+  "id": "/admin?app=admin",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf2f8",
+  "theme_color": "#1f6a4d",
+  "icons": [
+    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
