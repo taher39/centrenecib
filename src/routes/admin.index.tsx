@@ -82,8 +82,9 @@ function AdminAppointmentsPage() {
         {newCount > 0 && <Badge className="bg-destructive text-destructive-foreground"><Bell className="h-3 w-3 me-1" />{newCount} {t("admin.newRequests")}</Badge>}
       </div>
 
-      <Tabs defaultValue="today">
+      <Tabs defaultValue="new">
         <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="new">{t("admin.newRequests")} ({filtered.new.length})</TabsTrigger>
           <TabsTrigger value="today">{t("common.today")} ({filtered.today.length})</TabsTrigger>
           <TabsTrigger value="tomorrow">{t("common.tomorrow")} ({filtered.tomorrow.length})</TabsTrigger>
           <TabsTrigger value="week">7j ({filtered.week.length})</TabsTrigger>
