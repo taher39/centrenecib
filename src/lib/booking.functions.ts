@@ -190,6 +190,10 @@ export const bookOffer = createServerFn({ method: "POST" })
     const sb = admin();
     const { data: offer } = await sb.from("offers").select("*").eq("id", data.offerId).maybeSingle();
     if (!offer || !offer.active) throw new Error("Offre introuvable");
+    const allowed = (offer as { available_dates?: string[] }).available_dates ?? [];
+    if (allowed.length > 0 && !allowed.includes(data.date)) {
+      throw new Error("Date non disponible pour cette offre");
+    }
 
     let clientId = data.clientId;
     let code: string | null = null;
