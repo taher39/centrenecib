@@ -60,24 +60,9 @@ export const bootstrapAdmin = createServerFn({ method: "POST" })
       })
       .parse(d)
   )
-  .handler(async ({ data }) => {
-    const sb = admin();
-    const { count } = await sb.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin");
-    if ((count ?? 0) > 0) throw new Error("Un administrateur existe déjà");
-    const email = `${data.username.toLowerCase()}@nassib.local`;
-    const { data: created, error } = await sb.auth.admin.createUser({
-      email,
-      password: data.password,
-      email_confirm: true,
-    });
-    if (error || !created.user) throw new Error(error?.message ?? "Erreur");
-    await sb.from("user_roles").insert({
-      user_id: created.user.id,
-      role: "admin",
-      username: data.username,
-      display_name: data.displayName ?? data.username,
-    });
-    return { ok: true };
+  .handler(async () => {
+    // Bootstrap is permanently disabled — initial admin already exists.
+    throw new Error("Inscription désactivée");
   });
 
 // ===== Me =====
