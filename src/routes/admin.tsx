@@ -12,6 +12,7 @@ import {
   Percent, Settings as SettingsIcon, UserCog, ClipboardList, LogOut, Menu, X
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { InstallPWA } from "@/components/InstallPWA";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
@@ -94,7 +95,10 @@ function AdminLayout() {
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-2 border-b bg-card/95 backdrop-blur px-4">
           <button className="md:hidden" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
           <div className="font-display text-primary">{t("admin.overview")}</div>
-          <LangSwitcher />
+          <div className="flex items-center gap-2">
+            <InstallPWA variant="admin" />
+            <LangSwitcher />
+          </div>
         </header>
         <main className="p-4 md:p-6">
           <Outlet />
