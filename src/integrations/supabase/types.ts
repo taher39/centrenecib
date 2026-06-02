@@ -382,6 +382,7 @@ export type Database = {
       offers: {
         Row: {
           active: boolean
+          available_dates: string[]
           created_at: string
           description: string | null
           ends_at: string
@@ -394,6 +395,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          available_dates?: string[]
           created_at?: string
           description?: string | null
           ends_at: string
@@ -406,6 +408,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          available_dates?: string[]
           created_at?: string
           description?: string | null
           ends_at?: string
