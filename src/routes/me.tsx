@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { clientDashboard, listPublic } from "@/lib/booking.functions";
 import { Logo } from "@/components/Logo";
 import { LangSwitcher } from "@/components/LangSwitcher";
+import { InstallPWA } from "@/components/InstallPWA";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ function MePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <InstallPWA variant="client" />
           <LangSwitcher />
           <Button variant="ghost" size="sm" onClick={() => { localStorage.clear(); navigate({ to: "/" }); }}><LogOut className="h-4 w-4" /></Button>
         </div>
