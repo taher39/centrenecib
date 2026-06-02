@@ -346,6 +346,7 @@ export const saveOffer = createServerFn({ method: "POST" })
         offer_price: z.number().min(0),
         ends_at: z.string(),
         active: z.boolean().optional(),
+        available_dates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(60).optional(),
       })
       .parse(d)
   )
