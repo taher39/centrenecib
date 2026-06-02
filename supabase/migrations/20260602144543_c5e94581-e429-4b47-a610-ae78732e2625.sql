@@ -1,0 +1,1 @@
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS available_dates date[] NOT NULL DEFAULT ARRAY[]::date[];

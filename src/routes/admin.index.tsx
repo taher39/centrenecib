@@ -47,6 +47,7 @@ function AdminAppointmentsPage() {
   const weekEnd = (() => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10); })();
 
   const filtered = useMemo(() => ({
+    new: items.filter((a) => a.status === "pending"),
     today: items.filter((a) => a.appointment_date === today),
     tomorrow: items.filter((a) => a.appointment_date === tmw),
     week: items.filter((a) => a.appointment_date >= today && a.appointment_date <= weekEnd),
@@ -81,8 +82,9 @@ function AdminAppointmentsPage() {
         {newCount > 0 && <Badge className="bg-destructive text-destructive-foreground"><Bell className="h-3 w-3 me-1" />{newCount} {t("admin.newRequests")}</Badge>}
       </div>
 
-      <Tabs defaultValue="today">
+      <Tabs defaultValue="new">
         <TabsList className="flex-wrap h-auto">
+          <TabsTrigger value="new">{t("admin.newRequests")} ({filtered.new.length})</TabsTrigger>
           <TabsTrigger value="today">{t("common.today")} ({filtered.today.length})</TabsTrigger>
           <TabsTrigger value="tomorrow">{t("common.tomorrow")} ({filtered.tomorrow.length})</TabsTrigger>
           <TabsTrigger value="week">7j ({filtered.week.length})</TabsTrigger>

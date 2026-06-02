@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { InstallPWA } from "@/components/InstallPWA";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -75,6 +76,7 @@ function HomePage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <InstallPWA variant="client" />
           <LangSwitcher />
           <Link to="/admin/login"><Button variant="ghost" size="sm" className="gap-1"><ShieldCheck className="h-4 w-4" />{t("admin.login")}</Button></Link>
         </div>

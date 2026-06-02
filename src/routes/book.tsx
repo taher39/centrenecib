@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { InstallPWA } from "@/components/InstallPWA";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
 
@@ -265,19 +266,31 @@ function BookPage() {
           <DialogHeader><DialogTitle>{offerModal?.title}</DialogTitle></DialogHeader>
           <div className="grid gap-3">
             <div className="text-sm text-muted-foreground">{t("client.pickOfferDate") || "اختر اليوم المناسب — سيقوم الإدارة بتحديد الساعة"}</div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {next21.slice(0, 14).map((d) => {
-                const sel = offerModal?.date === d.value;
-                return (
-                  <button
-                    key={d.value}
-                    onClick={() => setOfferModal((p) => p ? { ...p, date: d.value } : p)}
-                    className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
-                  >
-                    {d.dayLabel}
-                  </button>
-                );
-              })}
+            <div className="flex flex-wrap gap-2 pb-1">
+              {(() => {
+                const offer = offers.find((o) => o.id === offerModal?.offerId) as { available_dates?: string[] } | undefined;
+                const allowed = offer?.available_dates ?? [];
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const future = allowed.filter((d) => d >= todayStr).sort();
+                if (future.length === 0) {
+                  return <div className="text-xs text-muted-foreground">{isAr ? "لا توجد أيام متاحة حاليًا لهذا العرض" : "Aucune date disponible"}</div>;
+                }
+                return future.map((value) => {
+                  const d = new Date(value + "T00:00:00");
+                  const dow = d.getDay();
+                  const label = `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+                  const sel = offerModal?.date === value;
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => setOfferModal((p) => p ? { ...p, date: value } : p)}
+                      className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                });
+              })()}
             </div>
           </div>
           <DialogFooter>
@@ -358,7 +371,10 @@ function NewClientHeader() {
           <div className="text-[10px] text-muted-foreground">{t("brand.exclusive")}</div>
         </div>
       </div>
-      <LangSwitcher />
+      <div className="flex items-center gap-2">
+        <InstallPWA variant="client" />
+        <LangSwitcher />
+      </div>
     </header>
   );
 }
