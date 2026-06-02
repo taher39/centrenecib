@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { InstallPWA } from "@/components/InstallPWA";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
 
@@ -370,7 +371,10 @@ function NewClientHeader() {
           <div className="text-[10px] text-muted-foreground">{t("brand.exclusive")}</div>
         </div>
       </div>
-      <LangSwitcher />
+      <div className="flex items-center gap-2">
+        <InstallPWA variant="client" />
+        <LangSwitcher />
+      </div>
     </header>
   );
 }
