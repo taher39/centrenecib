@@ -89,8 +89,8 @@ export const adminAppointments = createServerFn({ method: "GET" })
       .order("appointment_time", { ascending: true });
     if (error) throw new Error(error.message);
 
-    const serviceIds = [...new Set((appointments ?? []).map((a) => a.service_id).filter(Boolean))];
-    const offerIds = [...new Set((appointments ?? []).map((a) => a.offer_id).filter(Boolean))];
+    const serviceIds = [...new Set((appointments ?? []).map((a) => a.service_id).filter((id): id is string => !!id))];
+    const offerIds = [...new Set((appointments ?? []).map((a) => a.offer_id).filter((id): id is string => !!id))];
 
     const [{ data: services, error: servicesError }, { data: offers, error: offersError }] = await Promise.all([
       serviceIds.length
