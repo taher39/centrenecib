@@ -143,17 +143,28 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
     } = { status: data.status, is_read: true };
     if (data.newDate) update.appointment_date = data.newDate;
     if (data.newTime) update.appointment_time = data.newTime.length === 5 ? data.newTime + ":00" : data.newTime;
-    const { data: appt } = await sb.from("appointments").update(update).eq("id", data.id).select("*, services(name, price_dzd), offers(title, offer_price)").single();
+    const { data: appt, error: apptError } = await sb.from("appointments").update(update).eq("id", data.id).select("*").single();
+    if (apptError) throw new Error(apptError.message);
+
+    const [{ data: service, error: serviceError }, { data: offer, error: offerError }] = await Promise.all([
+      appt?.service_id
+        ? sb.from("services").select("name, price_dzd").eq("id", appt.service_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+      appt?.offer_id
+        ? sb.from("offers").select("title, offer_price").eq("id", appt.offer_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+    if (serviceError) throw new Error(serviceError.message);
+    if (offerError) throw new Error(offerError.message);
 
     // Auto-generate invoice on completion
     if (data.status === "completed" && appt) {
-      const a = appt as { services?: { name?: string; price_dzd?: number }; offers?: { title?: string; offer_price?: number }; client_id: string };
-      const price = Number(a.offers?.offer_price ?? a.services?.price_dzd ?? 0);
-      const svcName = a.offers?.title ?? a.services?.name ?? "Soin";
+      const price = Number(offer?.offer_price ?? service?.price_dzd ?? 0);
+      const svcName = offer?.title ?? service?.name ?? "Soin";
       const { data: inv } = await sb
         .from("invoices")
         .insert({
-          client_id: a.client_id,
+          client_id: appt.client_id,
           appointment_id: data.id,
           subtotal: price,
           total: price,
