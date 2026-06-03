@@ -104,8 +104,12 @@ export const adminAppointments = createServerFn({ method: "GET" })
     if (servicesError) throw new Error(servicesError.message);
     if (offersError) throw new Error(offersError.message);
 
-    const servicesById = new Map((services ?? []).map((item) => [item.id, item]));
-    const offersById = new Map((offers ?? []).map((item) => [item.id, item]));
+    const servicesById = new Map<string, { id: string; name: string; price_dzd: number | null; duration_min: number | null }>(
+      (services ?? []).map((item) => [item.id, item])
+    );
+    const offersById = new Map<string, { id: string; title: string; offer_price: number | null }>(
+      (offers ?? []).map((item) => [item.id, item])
+    );
 
     return {
       items: (appointments ?? []).map((appointment) => ({
