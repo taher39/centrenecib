@@ -82,12 +82,38 @@ export const adminAppointments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const sb = admin();
-    const { data } = await sb
+    const { data: appointments, error } = await sb
       .from("appointments")
-      .select("*, clients(id, full_name, phone, code), services(id, name, price_dzd, duration_min), offers(id, title, offer_price)")
+      .select("*, clients(id, full_name, phone, code)")
       .order("appointment_date", { ascending: false })
       .order("appointment_time", { ascending: true });
-    return { items: data ?? [] };
+    if (error) throw new Error(error.message);
+
+    const serviceIds = [...new Set((appointments ?? []).map((a) => a.service_id).filter(Boolean))];
+    const offerIds = [...new Set((appointments ?? []).map((a) => a.offer_id).filter(Boolean))];
+
+    const [{ data: services, error: servicesError }, { data: offers, error: offersError }] = await Promise.all([
+      serviceIds.length
+        ? sb.from("services").select("id, name, price_dzd, duration_min").in("id", serviceIds)
+        : Promise.resolve({ data: [], error: null }),
+      offerIds.length
+        ? sb.from("offers").select("id, title, offer_price").in("id", offerIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    if (servicesError) throw new Error(servicesError.message);
+    if (offersError) throw new Error(offersError.message);
+
+    const servicesById = new Map((services ?? []).map((item) => [item.id, item]));
+    const offersById = new Map((offers ?? []).map((item) => [item.id, item]));
+
+    return {
+      items: (appointments ?? []).map((appointment) => ({
+        ...appointment,
+        services: appointment.service_id ? servicesById.get(appointment.service_id) ?? null : null,
+        offers: appointment.offer_id ? offersById.get(appointment.offer_id) ?? null : null,
+      })),
+    };
   });
 
 export const setAppointmentStatus = createServerFn({ method: "POST" })
