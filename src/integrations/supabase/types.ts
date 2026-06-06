@@ -51,6 +51,7 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string | null
+          attendance: string | null
           client_id: string
           created_at: string
           group_id: string | null
@@ -65,6 +66,7 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time?: string | null
+          attendance?: string | null
           client_id: string
           created_at?: string
           group_id?: string | null
@@ -79,6 +81,7 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string | null
+          attendance?: string | null
           client_id?: string
           created_at?: string
           group_id?: string | null
@@ -151,33 +154,39 @@ export type Database = {
       }
       clients: {
         Row: {
+          address: string | null
           age: number | null
           code: string
           created_at: string
           debt: number
           full_name: string
+          gender: string | null
           id: string
           notes: string | null
           phone: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
           age?: number | null
           code: string
           created_at?: string
           debt?: number
           full_name: string
+          gender?: string | null
           id?: string
           notes?: string | null
           phone: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
           age?: number | null
           code?: string
           created_at?: string
           debt?: number
           full_name?: string
+          gender?: string | null
           id?: string
           notes?: string | null
           phone?: string
@@ -291,6 +300,7 @@ export type Database = {
         Row: {
           id: string
           invoice_id: string
+          product_id: string | null
           quantity: number
           service_name: string
           total: number
@@ -299,6 +309,7 @@ export type Database = {
         Insert: {
           id?: string
           invoice_id: string
+          product_id?: string | null
           quantity?: number
           service_name: string
           total: number
@@ -307,6 +318,7 @@ export type Database = {
         Update: {
           id?: string
           invoice_id?: string
+          product_id?: string | null
           quantity?: number
           service_name?: string
           total?: number
@@ -318,6 +330,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -374,6 +393,47 @@ export type Database = {
             foreignKeyName: "invoices_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_reports: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          diagnosis: string | null
+          id: string
+          notes: string | null
+          recommendations: string | null
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          recommendations?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          diagnosis?: string | null
+          id?: string
+          notes?: string | null
+          recommendations?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
@@ -458,6 +518,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          price: number
+          stock: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          price?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          price?: number
+          stock?: number | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       services: {
         Row: {
