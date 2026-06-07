@@ -1,7 +1,7 @@
 export default {
-  brand: { name: "CENTRE NECIB", tagline: "Esthétique & Soins de la peau", exclusive: "Exclusivement pour femmes" },
+  brand: { name: "CENTRE NECIB", tagline: "Esthétique & soins corporels", exclusive: "" },
   nav: { home: "Accueil", appointments: "Rendez-vous", clients: "Clientes", services: "Soins", invoices: "Factures", finance: "Comptabilité", offers: "Offres", gallery: "Galerie", staff: "Secrétaires", activity: "Journal d'activité", settings: "Paramètres", logout: "Déconnexion" },
-  common: { save: "Enregistrer", cancel: "Annuler", confirm: "Confirmer", delete: "Supprimer", edit: "Modifier", add: "Ajouter", search: "Rechercher", loading: "Chargement…", today: "Aujourd'hui", tomorrow: "Demain", currency: "DA", back: "Retour", actions: "Actions", date: "Date", time: "Heure", price: "Prix", duration: "Durée", minutes: "min", name: "Nom", phone: "Téléphone", age: "Âge", notes: "Notes", total: "Total", required: "Champ requis", install: "Installer l'app", language: "Langue" },
+  common: { save: "Enregistrer", cancel: "Annuler", confirm: "Confirmer", delete: "Supprimer", edit: "Modifier", add: "Ajouter", search: "Rechercher", loading: "Chargement…", today: "Aujourd'hui", tomorrow: "Demain", currency: "DA", back: "Retour", actions: "Actions", date: "Date", time: "Heure", price: "Prix", duration: "Durée", minutes: "min", name: "Nom", phone: "Téléphone", age: "Âge", address: "Adresse", gender: "Genre", male: "Homme", female: "Femme", notes: "Notes", total: "Total", required: "Champ requis", install: "Installer l'app", language: "Langue" },
   client: {
     welcome: "Bienvenue",
     loginTitle: "Entrez dans l'univers de la beauté",
@@ -23,6 +23,9 @@ export default {
     pickDateForEach: "Choisissez une date pour chaque soin",
     bookingError: "Une erreur est survenue — réessayez",
     countdownEnds: "Se termine dans",
+    bookThisOffer: "Réserver cette offre",
+    pickOfferDate: "Choisissez le jour — l'équipe fixera l'heure",
+    timePending: "L'heure sera fixée plus tard",
     days: "j", hours: "h", mins: "min", secs: "s",
   },
   admin: {
