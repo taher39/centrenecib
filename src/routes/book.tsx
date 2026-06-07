@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { InstallPWA } from "@/components/InstallPWA";
-import clientHeroBg from "@/assets/client-hero-bg.png.asset.json";
 import { Carousel } from "@/components/Carousel";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
@@ -147,7 +146,7 @@ function BookPage() {
 
   if (confirmation) {
     return (
-      <div className="min-h-screen bg-rose-gradient">
+      <div className="client-entry-shell min-h-screen bg-rose-gradient">
         <NewClientHeader />
         <main className="mx-auto max-w-md px-4 py-8">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl bg-card p-8 shadow-soft text-center">
@@ -340,7 +339,7 @@ function NewClientHeader() {
         <Logo size={48} />
         <div className={isRtl ? "text-right" : "text-left"}>
           <div className="font-display text-lg text-primary">{t("brand.name")}</div>
-          <div className="text-[10px] text-muted-foreground">{t("brand.exclusive")}</div>
+          <div className="text-[10px] text-muted-foreground">{t("brand.tagline")}</div>
         </div>
       </div>
       <div className="flex items-center gap-2">
