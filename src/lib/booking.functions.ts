@@ -92,6 +92,8 @@ export const book = createServerFn({ method: "POST" })
         fullName: z.string().min(2).max(120).optional(),
         age: z.number().int().min(8).max(110).optional(),
         phone: z.string().min(6).max(30).optional(),
+        address: z.string().trim().min(2).max(200).optional(),
+        gender: z.enum(["male", "female"]).optional(),
         bookings: z
           .array(
             z.object({
@@ -111,12 +113,12 @@ export const book = createServerFn({ method: "POST" })
     let isNew = false;
 
     if (!clientId) {
-      if (!data.fullName || !data.phone) throw new Error("Informations manquantes");
+      if (!data.fullName || !data.phone || !data.address || !data.gender) throw new Error("Informations manquantes");
       const { data: genCode } = await sb.rpc("generate_client_code");
       code = genCode as string;
       const { data: created, error } = await sb
         .from("clients")
-        .insert({ full_name: data.fullName, age: data.age ?? null, phone: data.phone, code })
+        .insert({ full_name: data.fullName, age: data.age ?? null, phone: data.phone, address: data.address, gender: data.gender, code })
         .select()
         .single();
       if (error || !created) throw new Error(error?.message ?? "Erreur création");
@@ -153,22 +155,49 @@ export const clientDashboard = createServerFn({ method: "POST" })
   .inputValidator((d: { clientId: string }) => z.object({ clientId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = admin();
-    const today = new Date().toISOString().slice(0, 10);
     const [{ data: client }, { data: appts }, { data: invoices }] = await Promise.all([
       sb.from("clients").select("*").eq("id", data.clientId).maybeSingle(),
       sb
         .from("appointments")
-        .select("*, services(name, price_dzd, duration_min), offers(title, offer_price)")
+        .select("*")
         .eq("client_id", data.clientId)
         .order("appointment_date", { ascending: false })
         .order("appointment_time", { ascending: false }),
       sb.from("invoices").select("*").eq("client_id", data.clientId).order("issued_at", { ascending: false }),
     ]);
     if (!client) throw new Error("Client introuvable");
-    const upcoming = (appts ?? []).filter(
-      (a) => a.appointment_date >= today && ["pending", "confirmed", "postponed"].includes(a.status as string)
-    );
-    const past = (appts ?? []).filter((a) => !upcoming.includes(a));
+    const serviceIds = [...new Set((appts ?? []).map((a) => a.service_id).filter((id): id is string => !!id))];
+    const offerIds = [...new Set((appts ?? []).map((a) => a.offer_id).filter((id): id is string => !!id))];
+
+    const [{ data: services }, { data: offers }] = await Promise.all([
+      serviceIds.length ? sb.from("services").select("id, name, price_dzd, duration_min").in("id", serviceIds) : Promise.resolve({ data: [] as { id: string; name: string; price_dzd: number; duration_min: number }[] }),
+      offerIds.length ? sb.from("offers").select("id, title, offer_price").in("id", offerIds) : Promise.resolve({ data: [] as { id: string; title: string; offer_price: number }[] }),
+    ]);
+
+    const serviceMap = new Map((services ?? []).map((item) => [item.id, item]));
+    const offerMap = new Map((offers ?? []).map((item) => [item.id, item]));
+    const now = new Date();
+
+    const enriched = (appts ?? []).map((appointment) => {
+      const service = appointment.service_id ? serviceMap.get(appointment.service_id) ?? null : null;
+      const offer = appointment.offer_id ? offerMap.get(appointment.offer_id) ?? null : null;
+      const time = typeof appointment.appointment_time === "string" ? appointment.appointment_time.slice(0, 5) : null;
+      const effectiveDateTime = new Date(`${appointment.appointment_date}T${time ?? "23:59"}:00`);
+      const isUpcoming = ["pending", "confirmed", "postponed"].includes(appointment.status as string) && effectiveDateTime >= now;
+
+      return {
+        ...appointment,
+        service,
+        offer,
+        displayTitle: service?.name ?? offer?.title ?? "—",
+        displayPrice: service?.price_dzd ?? offer?.offer_price ?? null,
+        displayTime: time,
+        isUpcoming,
+      };
+    });
+
+    const upcoming = enriched.filter((appointment) => appointment.isUpcoming);
+    const past = enriched.filter((appointment) => !appointment.isUpcoming);
     return { client, upcoming, past, invoices: invoices ?? [] };
   });
 
@@ -183,6 +212,8 @@ export const bookOffer = createServerFn({ method: "POST" })
         fullName: z.string().min(2).max(120).optional(),
         age: z.number().int().min(8).max(110).optional(),
         phone: z.string().min(6).max(30).optional(),
+        address: z.string().trim().min(2).max(200).optional(),
+        gender: z.enum(["male", "female"]).optional(),
       })
       .parse(d)
   )
@@ -199,12 +230,12 @@ export const bookOffer = createServerFn({ method: "POST" })
     let code: string | null = null;
     let isNew = false;
     if (!clientId) {
-      if (!data.fullName || !data.phone) throw new Error("Informations manquantes");
+      if (!data.fullName || !data.phone || !data.address || !data.gender) throw new Error("Informations manquantes");
       const { data: genCode } = await sb.rpc("generate_client_code");
       code = genCode as string;
       const { data: created, error } = await sb
         .from("clients")
-        .insert({ full_name: data.fullName, age: data.age ?? null, phone: data.phone, code })
+        .insert({ full_name: data.fullName, age: data.age ?? null, phone: data.phone, address: data.address, gender: data.gender, code })
         .select()
         .single();
       if (error || !created) throw new Error(error?.message ?? "Erreur création");
