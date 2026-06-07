@@ -1,7 +1,7 @@
 export default {
-  brand: { name: "CENTRE NECIB", tagline: "Aesthetic & Skincare", exclusive: "Exclusively for women" },
+  brand: { name: "CENTRE NECIB", tagline: "Aesthetic care & body wellness", exclusive: "" },
   nav: { home: "Home", appointments: "Appointments", clients: "Clients", services: "Services", invoices: "Invoices", finance: "Finance", offers: "Offers", gallery: "Gallery", staff: "Staff", activity: "Activity log", settings: "Settings", logout: "Sign out" },
-  common: { save: "Save", cancel: "Cancel", confirm: "Confirm", delete: "Delete", edit: "Edit", add: "Add", search: "Search", loading: "Loading…", today: "Today", tomorrow: "Tomorrow", currency: "DZD", back: "Back", actions: "Actions", date: "Date", time: "Time", price: "Price", duration: "Duration", minutes: "min", name: "Name", phone: "Phone", age: "Age", notes: "Notes", total: "Total", required: "Required field", install: "Install app", language: "Language" },
+  common: { save: "Save", cancel: "Cancel", confirm: "Confirm", delete: "Delete", edit: "Edit", add: "Add", search: "Search", loading: "Loading…", today: "Today", tomorrow: "Tomorrow", currency: "DZD", back: "Back", actions: "Actions", date: "Date", time: "Time", price: "Price", duration: "Duration", minutes: "min", name: "Name", phone: "Phone", age: "Age", address: "Address", gender: "Gender", male: "Male", female: "Female", notes: "Notes", total: "Total", required: "Required field", install: "Install app", language: "Language" },
   client: {
     welcome: "Welcome",
     loginTitle: "Step into the world of beauty",
@@ -23,6 +23,9 @@ export default {
     pickDateForEach: "Pick a date for each service",
     bookingError: "Something went wrong — please retry",
     countdownEnds: "Ends in",
+    bookThisOffer: "Book this offer",
+    pickOfferDate: "Choose a day — the team will set the time",
+    timePending: "Time will be set later",
     days: "d", hours: "h", mins: "m", secs: "s",
   },
   admin: {
