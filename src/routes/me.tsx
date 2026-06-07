@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarPlus, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
+import { Carousel } from "@/components/Carousel";
 
 export const Route = createFileRoute("/me")({ component: MePage });
 
@@ -53,14 +54,9 @@ function MePage() {
         </div>
       </header>
 
-      {/* Gallery marquee */}
       {pub.data?.gallery && pub.data.gallery.length > 0 && (
-        <div className="overflow-hidden border-y border-border/60 bg-card/50">
-          <div className="marquee-track flex gap-3 py-3 w-fit">
-            {[...pub.data.gallery, ...pub.data.gallery].map((g, i) => (
-              <img key={i} src={g.image_url} alt={g.caption ?? ""} className="h-24 w-36 rounded-xl object-cover" />
-            ))}
-          </div>
+        <div className="mx-auto max-w-5xl px-4">
+          <Carousel images={pub.data.gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} height="h-52 sm:h-64 md:h-72" />
         </div>
       )}
 
@@ -90,8 +86,8 @@ function MePage() {
               <Card key={a.id}>
                 <CardContent className="flex items-center justify-between p-4">
                   <div>
-                    <div className="font-semibold">{(a as { services?: { name?: string } }).services?.name}</div>
-                    <div className="text-xs text-muted-foreground">{a.appointment_date} · {String(a.appointment_time).slice(0, 5)}</div>
+                    <div className="font-semibold">{(a as { displayTitle?: string }).displayTitle ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">{a.appointment_date} · {(a as { displayTime?: string | null }).displayTime ?? t("client.timePending")}</div>
                   </div>
                   <Badge variant="outline">{t(`admin.status${a.status[0].toUpperCase() + a.status.slice(1)}`)}</Badge>
                 </CardContent>
@@ -106,9 +102,12 @@ function MePage() {
             {past.length === 0 && <div className="rounded-xl border-2 border-dashed p-4 text-center text-muted-foreground text-sm">—</div>}
             {past.slice(0, 10).map((a) => (
               <Card key={a.id}>
-                <CardContent className="flex items-center justify-between p-3 text-sm">
-                  <span>{(a as { services?: { name?: string } }).services?.name}</span>
-                  <span className="text-muted-foreground">{a.appointment_date}</span>
+                <CardContent className="flex items-center justify-between gap-4 p-4 text-sm">
+                  <div>
+                    <div className="font-semibold">{(a as { displayTitle?: string }).displayTitle ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">{a.appointment_date} · {(a as { displayTime?: string | null }).displayTime ?? t("client.timePending")}</div>
+                  </div>
+                  <Badge variant="secondary">{t(`admin.status${a.status[0].toUpperCase() + a.status.slice(1)}`)}</Badge>
                 </CardContent>
               </Card>
             ))}
