@@ -25,6 +25,7 @@ export default {
     countdownEnds: "ينتهي العرض خلال",
     bookThisOffer: "احجز هذا العرض",
     pickOfferDate: "اختر اليوم المناسب — سيتم تحديد الساعة من قبل الإدارة",
+    timePending: "يحدد الوقت لاحقاً",
     days: "يوم", hours: "س", mins: "د", secs: "ث",
   },
   admin: {
