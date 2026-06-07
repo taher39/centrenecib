@@ -164,6 +164,19 @@
     var(--background);
 }
 
+.client-entry-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.client-entry-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--background) 6%, transparent), color-mix(in oklab, var(--background) 22%, transparent));
+}
+
 /* Gold offer banner */
 .offer-banner {
   background: linear-gradient(135deg, oklch(0.82 0.14 85), oklch(0.7 0.15 75));
