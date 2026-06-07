@@ -18,6 +18,8 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { InstallPWA } from "@/components/InstallPWA";
+import clientHeroBg from "@/assets/client-hero-bg.png.asset.json";
+import { Carousel } from "@/components/Carousel";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
 
@@ -33,7 +35,7 @@ function BookPage() {
   const bookOfferFn = useServerFn(bookOffer);
   const codeLoginFn = useServerFn(loginByCode);
 
-  const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string } | null>(null);
+  const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string; address?: string; gender?: "male" | "female" } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Per-service chosen date
   const [dates, setDates] = useState<Record<string, string>>({});
@@ -53,7 +55,7 @@ function BookPage() {
       if (code) {
         codeLoginFn({ data: { code } }).then((r) => {
           if (r.client) {
-            setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone });
+            setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone, address: r.client.address ?? undefined, gender: (r.client.gender as "male" | "female" | null) ?? undefined });
             localStorage.setItem("nassib_client", JSON.stringify({ id: r.client.id, fullName: r.client.full_name }));
           }
         }).catch(() => undefined);
@@ -105,7 +107,7 @@ function BookPage() {
       if (missing) throw new Error(t("client.pickDateForEach"));
       const payload = clientInfo?.id
         ? { clientId: clientInfo.id, bookings: bookings as { serviceId: string; date: string }[] }
-        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, bookings: bookings as { serviceId: string; date: string }[] };
+        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings: bookings as { serviceId: string; date: string }[] };
       return bookFn({ data: payload });
     },
     onSuccess: (res) => {
@@ -122,7 +124,7 @@ function BookPage() {
       <div className="min-h-screen bg-rose-gradient">
         <NewClientHeader />
         <main className="mx-auto max-w-md px-4 py-8">
-          <Card className="rounded-2xl shadow-soft">
+          <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
             <CardContent className="grid gap-4 p-6">
               <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>
               <NewClientForm onSubmit={(info) => setClientInfo(info)} />
@@ -174,7 +176,7 @@ function BookPage() {
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
 
-        {gallery.length > 0 && <GalleryCarousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} />}
+        {gallery.length > 0 && <Carousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} height="h-56 sm:h-72 md:h-80" />}
 
         {offers.length > 0 && (
           <div className="mt-4 mb-4 grid gap-3">
@@ -301,7 +303,7 @@ function BookPage() {
                 try {
                   const payload = clientInfo?.id
                     ? { offerId: offerModal.offerId, date: offerModal.date, clientId: clientInfo.id }
-                    : { offerId: offerModal.offerId, date: offerModal.date, fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone! };
+                    : { offerId: offerModal.offerId, date: offerModal.date, fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender! };
                   const res = await bookOfferFn({ data: payload });
                   if (res.code) localStorage.setItem("nassib_code", res.code);
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
@@ -319,51 +321,11 @@ function BookPage() {
   );
 }
 
-function GalleryCarousel({ images }: { images: { url: string; caption?: string | null }[] }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "center" }, [Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: true })]);
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    if (!emblaApi) return;
-    const onSel = () => setIdx(emblaApi.selectedScrollSnap());
-    emblaApi.on("select", onSel);
-    onSel();
-    return () => { emblaApi.off("select", onSel); };
-  }, [emblaApi]);
-  return (
-    <div className="relative mb-4 overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-soft">
-      <div ref={emblaRef} className="overflow-hidden">
-        <div className="flex">
-          {images.map((g, i) => (
-            <div key={i} className="min-w-0 shrink-0 grow-0 basis-full">
-              <img src={g.url} alt={g.caption ?? ""} className="h-56 sm:h-72 w-full object-cover" draggable={false} />
-            </div>
-          ))}
-        </div>
-      </div>
-      {images.length > 1 && (
-        <>
-          <button type="button" aria-label="prev" onClick={() => emblaApi?.scrollPrev()} className="absolute start-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button type="button" aria-label="next" onClick={() => emblaApi?.scrollNext()} className="absolute end-2 top-1/2 -translate-y-1/2 grid h-9 w-9 place-items-center rounded-full bg-background/80 backdrop-blur hover:bg-background shadow-soft">
-            <ChevronRight className="h-5 w-5" />
-          </button>
-          <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
-            {images.map((_, i) => (
-              <button key={i} aria-label={`go to ${i + 1}`} onClick={() => emblaApi?.scrollTo(i)} className={`h-1.5 rounded-full transition-all ${i === idx ? "w-6 bg-primary" : "w-1.5 bg-background/70"}`} />
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 function NewClientHeader() {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === "ar";
   return (
-    <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
+    <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
       <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
         <Logo size={48} />
         <div className={isRtl ? "text-right" : "text-left"}>
@@ -379,17 +341,27 @@ function NewClientHeader() {
   );
 }
 
-function NewClientForm({ onSubmit }: { onSubmit: (i: { fullName: string; age: number; phone: string }) => void }) {
+function NewClientForm({ onSubmit }: { onSubmit: (i: { fullName: string; age: number; phone: string; address: string; gender: "male" | "female" }) => void }) {
   const { t } = useTranslation();
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "">("");
   return (
-    <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); if (!fullName || !phone || !age) return; onSubmit({ fullName, age: Number(age), phone }); }}>
+    <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); if (!fullName || !phone || !age || !address || !gender) return; onSubmit({ fullName, age: Number(age), phone, address, gender }); }}>
       <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} /></div>
       <div className="grid grid-cols-2 gap-3">
         <div className="grid gap-2"><Label>{t("common.age")}</Label><Input type="number" min={10} max={99} value={age} onChange={(e) => setAge(e.target.value)} required /></div>
         <div className="grid gap-2"><Label>{t("common.phone")}</Label><Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required /></div>
+      </div>
+      <div className="grid gap-2"><Label>{t("common.address")}</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} required minLength={2} /></div>
+      <div className="grid gap-2">
+        <Label>{t("common.gender")}</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <button type="button" onClick={() => setGender("male")} className={`h-11 rounded-xl border text-sm transition ${gender === "male" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary/50"}`}>{t("common.male")}</button>
+          <button type="button" onClick={() => setGender("female")} className={`h-11 rounded-xl border text-sm transition ${gender === "female" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary/50"}`}>{t("common.female")}</button>
+        </div>
       </div>
       <Button type="submit" className="h-11 rounded-xl">{t("client.book")}</Button>
     </form>
