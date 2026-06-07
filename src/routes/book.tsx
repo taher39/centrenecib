@@ -11,11 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { InstallPWA } from "@/components/InstallPWA";
 import clientHeroBg from "@/assets/client-hero-bg.png.asset.json";
@@ -48,7 +46,19 @@ function BookPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as { id: string; fullName: string };
-        setClientInfo({ id: parsed.id, fullName: parsed.fullName });
+        const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
+        if (code) {
+          codeLoginFn({ data: { code } }).then((r) => {
+            if (r.client) {
+              setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone, address: r.client.address ?? undefined, gender: (r.client.gender as "male" | "female" | null) ?? undefined });
+              localStorage.setItem("nassib_client", JSON.stringify({ id: r.client.id, fullName: r.client.full_name }));
+            } else {
+              setClientInfo({ id: parsed.id, fullName: parsed.fullName });
+            }
+          }).catch(() => setClientInfo({ id: parsed.id, fullName: parsed.fullName }));
+        } else {
+          setClientInfo({ id: parsed.id, fullName: parsed.fullName });
+        }
       } catch { /* noop */ }
     } else {
       const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
@@ -121,7 +131,7 @@ function BookPage() {
 
   if (!clientInfo) {
     return (
-      <div className="min-h-screen bg-rose-gradient">
+      <div className="client-entry-shell min-h-screen bg-rose-gradient">
         <NewClientHeader />
         <main className="mx-auto max-w-md px-4 py-8">
           <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
@@ -171,7 +181,7 @@ function BookPage() {
   }
 
   return (
-    <div className="min-h-screen bg-rose-gradient">
+    <div className="client-entry-shell min-h-screen bg-rose-gradient">
       <NewClientHeader />
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
