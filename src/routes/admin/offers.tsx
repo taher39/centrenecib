@@ -22,6 +22,7 @@ type Offer = {
   image_url?: string | null; original_price?: number | null;
   offer_price: number; ends_at: string; active?: boolean;
   available_dates?: string[];
+  gender_target?: "male" | "female" | "both";
 };
 
 const DAYS_AR = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
@@ -156,6 +157,16 @@ function OffersPage() {
                 </div>
               </div>
 
+              <div className="grid gap-2">
+                <Label>{t("admin.genderTarget")}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["both","female","male"] as const).map((g) => (
+                    <button key={g} type="button" onClick={() => setEdit({ ...edit, gender_target: g })} className={`rounded-lg px-3 py-2 text-xs border ${(edit.gender_target ?? "both") === g ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-border"}`}>
+                      {g === "both" ? t("admin.genderBoth") : g === "female" ? t("admin.genderFemale") : t("admin.genderMale")}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex items-center gap-2"><Switch checked={edit.active !== false} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /><Label>Actif</Label></div>
             </div>
           )}

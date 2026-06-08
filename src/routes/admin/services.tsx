@@ -22,6 +22,7 @@ const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 type Svc = {
   id?: string; name: string; description?: string | null; duration_min: number; price_dzd: number;
   capacity: number; available_days: number[]; active?: boolean;
+  gender_target?: "male" | "female" | "both";
 };
 
 function AdminServicesPage() {
@@ -46,6 +47,7 @@ function AdminServicesPage() {
         id: edit.id, name: edit.name, description: edit.description ?? null,
         duration_min: Number(edit.duration_min), price_dzd: Number(edit.price_dzd),
         capacity: Number(edit.capacity), available_days: edit.available_days, active: edit.active ?? true,
+        gender_target: edit.gender_target ?? "both",
       } });
       setEdit(null); qc.invalidateQueries({ queryKey: ["svc"] }); toast.success("✓");
     } catch (e) { toast.error((e as Error).message); }
@@ -55,7 +57,7 @@ function AdminServicesPage() {
     <div className="grid gap-6">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl text-primary">{t("nav.services")}</h1>
-        {can("services", "edit") && <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6] })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>}
+        {can("services", "edit") && <Button onClick={() => setEdit({ name: "", duration_min: 30, price_dzd: 1000, capacity: 1, available_days: [0,1,2,3,4,5,6], gender_target: "both" })}><Plus className="h-4 w-4 me-1" />{t("admin.addService")}</Button>}
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -102,6 +104,16 @@ function AdminServicesPage() {
                     const on = edit.available_days.includes(i);
                     return <button key={i} type="button" onClick={() => setEdit({ ...edit, available_days: on ? edit.available_days.filter((x) => x !== i) : [...edit.available_days, i] })} className={`rounded px-3 py-1 text-xs ${on ? "bg-primary text-primary-foreground" : "bg-secondary"}`}>{d}</button>;
                   })}
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label>{t("admin.genderTarget")}</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["both","female","male"] as const).map((g) => (
+                    <button key={g} type="button" onClick={() => setEdit({ ...edit, gender_target: g })} className={`rounded-lg px-3 py-2 text-xs border ${ (edit.gender_target ?? "both") === g ? "bg-primary text-primary-foreground border-primary" : "bg-secondary border-border"}`}>
+                      {g === "both" ? t("admin.genderBoth") : g === "female" ? t("admin.genderFemale") : t("admin.genderMale")}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="flex items-center gap-2"><Switch checked={edit.active !== false} onCheckedChange={(v) => setEdit({ ...edit, active: v })} /><Label>Actif</Label></div>
