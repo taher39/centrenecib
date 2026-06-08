@@ -111,9 +111,11 @@ export const book = createServerFn({ method: "POST" })
     let clientId = data.clientId;
     let code: string | null = null;
     let isNew = false;
+    let clientGender: "male" | "female" | null = null;
 
     if (!clientId) {
       if (!data.fullName || !data.phone || !data.address || !data.gender) throw new Error("Informations manquantes");
+      clientGender = data.gender;
       const { data: genCode } = await sb.rpc("generate_client_code");
       code = genCode as string;
       const { data: created, error } = await sb
@@ -125,8 +127,19 @@ export const book = createServerFn({ method: "POST" })
       clientId = created.id;
       isNew = true;
     } else {
-      const { data: existing } = await sb.from("clients").select("code").eq("id", clientId).single();
+      const { data: existing } = await sb.from("clients").select("code, gender").eq("id", clientId).single();
       code = existing?.code ?? null;
+      clientGender = ((existing as { gender?: string | null } | null)?.gender as "male" | "female" | null) ?? null;
+    }
+
+    // Pre-validate gender restrictions on all chosen services
+    const svcIds = [...new Set(data.bookings.map((b) => b.serviceId))];
+    const { data: svcRows } = await sb.from("services").select("id, name, gender_target").in("id", svcIds);
+    for (const s of svcRows ?? []) {
+      const gt = (s as { gender_target?: string }).gender_target ?? "both";
+      if (gt !== "both" && clientGender && gt !== clientGender) {
+        throw new Error(gt === "female" ? "GENDER_FEMALE_ONLY" : "GENDER_MALE_ONLY");
+      }
     }
 
     const groupId = crypto.randomUUID();
@@ -225,12 +238,15 @@ export const bookOffer = createServerFn({ method: "POST" })
     if (allowed.length > 0 && !allowed.includes(data.date)) {
       throw new Error("Date non disponible pour cette offre");
     }
+    const offerGender = (offer as { gender_target?: string }).gender_target ?? "both";
 
     let clientId = data.clientId;
     let code: string | null = null;
     let isNew = false;
+    let clientGender: "male" | "female" | null = null;
     if (!clientId) {
       if (!data.fullName || !data.phone || !data.address || !data.gender) throw new Error("Informations manquantes");
+      clientGender = data.gender;
       const { data: genCode } = await sb.rpc("generate_client_code");
       code = genCode as string;
       const { data: created, error } = await sb
@@ -242,8 +258,13 @@ export const bookOffer = createServerFn({ method: "POST" })
       clientId = created.id;
       isNew = true;
     } else {
-      const { data: existing } = await sb.from("clients").select("code").eq("id", clientId).single();
+      const { data: existing } = await sb.from("clients").select("code, gender").eq("id", clientId).single();
       code = existing?.code ?? null;
+      clientGender = ((existing as { gender?: string | null } | null)?.gender as "male" | "female" | null) ?? null;
+    }
+
+    if (offerGender !== "both" && clientGender && offerGender !== clientGender) {
+      throw new Error(offerGender === "female" ? "GENDER_FEMALE_ONLY" : "GENDER_MALE_ONLY");
     }
 
     const { error: insertErr } = await sb.from("appointments").insert({
