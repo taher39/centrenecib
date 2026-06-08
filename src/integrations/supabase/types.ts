@@ -446,6 +446,7 @@ export type Database = {
           created_at: string
           description: string | null
           ends_at: string
+          gender_target: string
           id: string
           image_url: string | null
           offer_price: number
@@ -459,6 +460,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at: string
+          gender_target?: string
           id?: string
           image_url?: string | null
           offer_price: number
@@ -472,6 +474,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           ends_at?: string
+          gender_target?: string
           id?: string
           image_url?: string | null
           offer_price?: number
@@ -557,6 +560,7 @@ export type Database = {
           created_at: string
           description: string | null
           duration_min: number
+          gender_target: string
           id: string
           name: string
           name_en: string | null
@@ -570,6 +574,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_min: number
+          gender_target?: string
           id?: string
           name: string
           name_en?: string | null
@@ -583,6 +588,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_min?: number
+          gender_target?: string
           id?: string
           name?: string
           name_en?: string | null
