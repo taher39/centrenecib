@@ -279,6 +279,48 @@ function BookPage() {
 
       </main>
 
+      {/* Glass date picker dialog */}
+      <Dialog open={!!datePicker} onOpenChange={(o) => !o && setDatePicker(null)}>
+        <DialogContent className="glass-panel sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">{datePicker?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="text-sm text-muted-foreground">{t("client.pickDates")}</div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto p-1">
+              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).map((d) => {
+                const list = dates[datePicker.serviceId] ?? [];
+                const sel = list.includes(d.value);
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => setDates((prev) => {
+                      const cur = prev[datePicker.serviceId] ?? [];
+                      const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
+                      return { ...prev, [datePicker.serviceId]: next };
+                    })}
+                    className={`rounded-xl border px-2 py-3 text-xs transition ${sel ? "border-primary bg-primary text-primary-foreground shadow-soft" : "border-white/40 bg-card/60 hover:bg-card/90"}`}
+                  >
+                    {d.dayLabel}
+                  </button>
+                );
+              })}
+              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).length === 0 && (
+                <div className="col-span-full text-xs text-muted-foreground text-center py-8">—</div>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {t("client.daysSelected", { n: (datePicker ? dates[datePicker.serviceId]?.length ?? 0 : 0) })}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setDatePicker(null)}>{t("client.doneSelect")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       <Dialog open={!!offerModal} onOpenChange={(o) => !o && setOfferModal(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>{offerModal?.title}</DialogTitle></DialogHeader>
@@ -325,7 +367,12 @@ function BookPage() {
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
                   setOfferModal(null);
                   setConfirmation({ code: res.code, isNew: res.isNew, clientId: res.clientId, appointments: [{ serviceName: res.offerTitle, time: "—", date: res.date }] });
-                } catch (e) { toast.error((e as Error).message); }
+                } catch (e) {
+                  const m = (e as Error).message;
+                  if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
+                  else if (m === "GENDER_MALE_ONLY") toast.error(t("client.maleOnly"));
+                  else toast.error(m);
+                }
               }}
             >
               {t("client.book")}
