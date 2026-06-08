@@ -34,8 +34,9 @@ function BookPage() {
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string; address?: string; gender?: "male" | "female" } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // Per-service chosen date
-  const [dates, setDates] = useState<Record<string, string>>({});
+  // Per-service chosen dates (multiple)
+  const [dates, setDates] = useState<Record<string, string[]>>({});
+  const [datePicker, setDatePicker] = useState<{ serviceId: string; name: string; days: number[] } | null>(null);
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
 
@@ -95,15 +96,20 @@ function BookPage() {
     return arr;
   }, [isAr]);
 
-  const toggle = (id: string) => {
+  const toggle = (svc: { id: string; gender_target?: string | null; name: string; available_days?: number[] | null }) => {
+    const gt = svc.gender_target ?? "both";
+    if (gt !== "both" && clientInfo?.gender && gt !== clientInfo.gender) {
+      toast.error(gt === "female" ? t("client.femaleOnly") : t("client.maleOnly"));
+      return;
+    }
     setSelected((s) => {
       const n = new Set(s);
-      if (n.has(id)) n.delete(id); else n.add(id);
-      return n;
-    });
-    setDates((d) => {
-      const n = { ...d };
-      if (n[id]) delete n[id];
+      if (n.has(svc.id)) { n.delete(svc.id); setDates((d) => { const x = { ...d }; delete x[svc.id]; return x; }); }
+      else {
+        n.add(svc.id);
+        // open glass picker right away
+        setDatePicker({ serviceId: svc.id, name: svc.name, days: (svc.available_days as number[]) ?? [0,1,2,3,4,5,6] });
+      }
       return n;
     });
   };
@@ -111,12 +117,15 @@ function BookPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) throw new Error(t("client.pickAtLeastOne"));
-      const bookings = Array.from(selected).map((sid) => ({ serviceId: sid, date: dates[sid] }));
-      const missing = bookings.find((b) => !b.date);
-      if (missing) throw new Error(t("client.pickDateForEach"));
+      const bookings: { serviceId: string; date: string }[] = [];
+      for (const sid of Array.from(selected)) {
+        const list = dates[sid] ?? [];
+        if (list.length === 0) throw new Error(t("client.pickDateForEach"));
+        for (const d of list) bookings.push({ serviceId: sid, date: d });
+      }
       const payload = clientInfo?.id
-        ? { clientId: clientInfo.id, bookings: bookings as { serviceId: string; date: string }[] }
-        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings: bookings as { serviceId: string; date: string }[] };
+        ? { clientId: clientInfo.id, bookings }
+        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings };
       return bookFn({ data: payload });
     },
     onSuccess: (res) => {
@@ -124,7 +133,12 @@ function BookPage() {
       localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
       setConfirmation({ code: res.code, isNew: res.isNew, appointments: res.appointments, clientId: res.clientId });
     },
-    onError: (e: Error) => toast.error(e.message ?? t("client.bookingError")),
+    onError: (e: Error) => {
+      const m = e.message;
+      if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
+      else if (m === "GENDER_MALE_ONLY") toast.error(t("client.maleOnly"));
+      else toast.error(m || t("client.bookingError"));
+    },
   });
 
 
@@ -221,7 +235,7 @@ function BookPage() {
             const daysLabels = availDays.map((d) => (isAr ? DAYS_AR[d] : DAYS_FR[d])).join(" · ");
             return (
               <div key={s.id} className={`rounded-2xl border p-4 transition shadow-sm ${isSel ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border bg-card"}`}>
-                <button onClick={() => toggle(s.id)} className="w-full text-start">
+                <button onClick={() => toggle(s)} className="w-full text-start">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-semibold text-foreground">{s.name}</div>
@@ -233,29 +247,22 @@ function BookPage() {
                     <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{s.duration_min} {t("common.minutes")}</Badge>
                     <Badge className="bg-destructive text-destructive-foreground hover:bg-destructive">{Number(s.price_dzd).toLocaleString()} {t("common.currency")}</Badge>
                     <Badge variant="outline" className="text-[10px]"><CalendarIcon className="h-3 w-3 me-1" />{daysLabels}</Badge>
+                    {((s as { gender_target?: string }).gender_target ?? "both") !== "both" && (
+                      <Badge variant="outline" className="text-[10px]">{(s as { gender_target?: string }).gender_target === "female" ? t("common.female") : t("common.male")}</Badge>
+                    )}
                   </div>
                 </button>
 
                 {isSel && (
-                  <div className="mt-4 border-t pt-3">
-                    <div className="text-xs font-medium text-muted-foreground mb-2">{t("client.chooseDate")}</div>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {next21.filter((d) => availDays.includes(d.dow)).slice(0, 14).map((d) => {
-                        const sel = dates[s.id] === d.value;
-                        return (
-                          <button
-                            key={d.value}
-                            onClick={() => setDates((prev) => ({ ...prev, [s.id]: d.value }))}
-                            className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
-                          >
-                            {d.dayLabel}
-                          </button>
-                        );
-                      })}
-                      {next21.filter((d) => availDays.includes(d.dow)).length === 0 && (
-                        <div className="text-xs text-muted-foreground">—</div>
-                      )}
+                  <div className="mt-4 border-t pt-3 flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      {(dates[s.id]?.length ?? 0) > 0
+                        ? t("client.daysSelected", { n: dates[s.id]!.length })
+                        : t("client.chooseDate")}
                     </div>
+                    <Button variant="outline" size="sm" onClick={() => setDatePicker({ serviceId: s.id, name: s.name, days: availDays })}>
+                      <CalendarIcon className="h-3 w-3 me-1" />{t("client.chooseDate")}
+                    </Button>
                   </div>
                 )}
               </div>
@@ -271,6 +278,48 @@ function BookPage() {
         </div>
 
       </main>
+
+      {/* Glass date picker dialog */}
+      <Dialog open={!!datePicker} onOpenChange={(o) => !o && setDatePicker(null)}>
+        <DialogContent className="glass-panel sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-display text-primary">{datePicker?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="text-sm text-muted-foreground">{t("client.pickDates")}</div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto p-1">
+              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).map((d) => {
+                const list = dates[datePicker.serviceId] ?? [];
+                const sel = list.includes(d.value);
+                return (
+                  <button
+                    key={d.value}
+                    type="button"
+                    onClick={() => setDates((prev) => {
+                      const cur = prev[datePicker.serviceId] ?? [];
+                      const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
+                      return { ...prev, [datePicker.serviceId]: next };
+                    })}
+                    className={`rounded-xl border px-2 py-3 text-xs transition ${sel ? "border-primary bg-primary text-primary-foreground shadow-soft" : "border-white/40 bg-card/60 hover:bg-card/90"}`}
+                  >
+                    {d.dayLabel}
+                  </button>
+                );
+              })}
+              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).length === 0 && (
+                <div className="col-span-full text-xs text-muted-foreground text-center py-8">—</div>
+              )}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {t("client.daysSelected", { n: (datePicker ? dates[datePicker.serviceId]?.length ?? 0 : 0) })}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setDatePicker(null)}>{t("client.doneSelect")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!offerModal} onOpenChange={(o) => !o && setOfferModal(null)}>
         <DialogContent>
@@ -318,7 +367,12 @@ function BookPage() {
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
                   setOfferModal(null);
                   setConfirmation({ code: res.code, isNew: res.isNew, clientId: res.clientId, appointments: [{ serviceName: res.offerTitle, time: "—", date: res.date }] });
-                } catch (e) { toast.error((e as Error).message); }
+                } catch (e) {
+                  const m = (e as Error).message;
+                  if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
+                  else if (m === "GENDER_MALE_ONLY") toast.error(t("client.maleOnly"));
+                  else toast.error(m);
+                }
               }}
             >
               {t("client.book")}

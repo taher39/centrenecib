@@ -1,0 +1,2 @@
+ALTER TABLE public.services ADD COLUMN IF NOT EXISTS gender_target text NOT NULL DEFAULT 'both' CHECK (gender_target IN ('male','female','both'));
+ALTER TABLE public.offers ADD COLUMN IF NOT EXISTS gender_target text NOT NULL DEFAULT 'both' CHECK (gender_target IN ('male','female','both'));
