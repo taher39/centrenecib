@@ -169,12 +169,25 @@
   isolation: isolate;
 }
 
+/* Pro fade — center stays clear, edges blend to background softly */
 .client-entry-shell::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, color-mix(in oklab, var(--background) 6%, transparent), color-mix(in oklab, var(--background) 22%, transparent));
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 45%, transparent 35%, color-mix(in oklab, var(--background) 55%, transparent) 100%),
+    linear-gradient(180deg, transparent 0%, transparent 55%, color-mix(in oklab, var(--background) 65%, transparent) 100%);
+  pointer-events: none;
+}
+
+/* Glassmorphism utility used by booking dialogs */
+.glass-panel {
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, transparent);
+  box-shadow: 0 20px 60px -20px color-mix(in oklab, var(--primary) 35%, transparent);
 }
 
 /* Gold offer banner */
