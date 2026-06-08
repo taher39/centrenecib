@@ -235,7 +235,7 @@ function BookPage() {
             const daysLabels = availDays.map((d) => (isAr ? DAYS_AR[d] : DAYS_FR[d])).join(" · ");
             return (
               <div key={s.id} className={`rounded-2xl border p-4 transition shadow-sm ${isSel ? "border-primary bg-primary/5 ring-2 ring-primary/30" : "border-border bg-card"}`}>
-                <button onClick={() => toggle(s.id)} className="w-full text-start">
+                <button onClick={() => toggle(s)} className="w-full text-start">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-semibold text-foreground">{s.name}</div>
@@ -247,29 +247,22 @@ function BookPage() {
                     <Badge variant="secondary"><Clock className="h-3 w-3 me-1" />{s.duration_min} {t("common.minutes")}</Badge>
                     <Badge className="bg-destructive text-destructive-foreground hover:bg-destructive">{Number(s.price_dzd).toLocaleString()} {t("common.currency")}</Badge>
                     <Badge variant="outline" className="text-[10px]"><CalendarIcon className="h-3 w-3 me-1" />{daysLabels}</Badge>
+                    {((s as { gender_target?: string }).gender_target ?? "both") !== "both" && (
+                      <Badge variant="outline" className="text-[10px]">{(s as { gender_target?: string }).gender_target === "female" ? t("common.female") : t("common.male")}</Badge>
+                    )}
                   </div>
                 </button>
 
                 {isSel && (
-                  <div className="mt-4 border-t pt-3">
-                    <div className="text-xs font-medium text-muted-foreground mb-2">{t("client.chooseDate")}</div>
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                      {next21.filter((d) => availDays.includes(d.dow)).slice(0, 14).map((d) => {
-                        const sel = dates[s.id] === d.value;
-                        return (
-                          <button
-                            key={d.value}
-                            onClick={() => setDates((prev) => ({ ...prev, [s.id]: d.value }))}
-                            className={`shrink-0 rounded-xl border px-3 py-2 text-xs ${sel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary/40"}`}
-                          >
-                            {d.dayLabel}
-                          </button>
-                        );
-                      })}
-                      {next21.filter((d) => availDays.includes(d.dow)).length === 0 && (
-                        <div className="text-xs text-muted-foreground">—</div>
-                      )}
+                  <div className="mt-4 border-t pt-3 flex items-center justify-between">
+                    <div className="text-xs text-muted-foreground">
+                      {(dates[s.id]?.length ?? 0) > 0
+                        ? t("client.daysSelected", { n: dates[s.id]!.length })
+                        : t("client.chooseDate")}
                     </div>
+                    <Button variant="outline" size="sm" onClick={() => setDatePicker({ serviceId: s.id, name: s.name, days: availDays })}>
+                      <CalendarIcon className="h-3 w-3 me-1" />{t("client.chooseDate")}
+                    </Button>
                   </div>
                 )}
               </div>
