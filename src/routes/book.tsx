@@ -34,8 +34,9 @@ function BookPage() {
 
   const [clientInfo, setClientInfo] = useState<{ id?: string; fullName?: string; age?: number; phone?: string; address?: string; gender?: "male" | "female" } | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  // Per-service chosen date
-  const [dates, setDates] = useState<Record<string, string>>({});
+  // Per-service chosen dates (multiple)
+  const [dates, setDates] = useState<Record<string, string[]>>({});
+  const [datePicker, setDatePicker] = useState<{ serviceId: string; name: string; days: number[] } | null>(null);
   const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
 
@@ -95,15 +96,20 @@ function BookPage() {
     return arr;
   }, [isAr]);
 
-  const toggle = (id: string) => {
+  const toggle = (svc: { id: string; gender_target?: string | null; name: string; available_days?: number[] | null }) => {
+    const gt = svc.gender_target ?? "both";
+    if (gt !== "both" && clientInfo?.gender && gt !== clientInfo.gender) {
+      toast.error(gt === "female" ? t("client.femaleOnly") : t("client.maleOnly"));
+      return;
+    }
     setSelected((s) => {
       const n = new Set(s);
-      if (n.has(id)) n.delete(id); else n.add(id);
-      return n;
-    });
-    setDates((d) => {
-      const n = { ...d };
-      if (n[id]) delete n[id];
+      if (n.has(svc.id)) { n.delete(svc.id); setDates((d) => { const x = { ...d }; delete x[svc.id]; return x; }); }
+      else {
+        n.add(svc.id);
+        // open glass picker right away
+        setDatePicker({ serviceId: svc.id, name: svc.name, days: (svc.available_days as number[]) ?? [0,1,2,3,4,5,6] });
+      }
       return n;
     });
   };
@@ -111,12 +117,15 @@ function BookPage() {
   const mutation = useMutation({
     mutationFn: async () => {
       if (selected.size === 0) throw new Error(t("client.pickAtLeastOne"));
-      const bookings = Array.from(selected).map((sid) => ({ serviceId: sid, date: dates[sid] }));
-      const missing = bookings.find((b) => !b.date);
-      if (missing) throw new Error(t("client.pickDateForEach"));
+      const bookings: { serviceId: string; date: string }[] = [];
+      for (const sid of Array.from(selected)) {
+        const list = dates[sid] ?? [];
+        if (list.length === 0) throw new Error(t("client.pickDateForEach"));
+        for (const d of list) bookings.push({ serviceId: sid, date: d });
+      }
       const payload = clientInfo?.id
-        ? { clientId: clientInfo.id, bookings: bookings as { serviceId: string; date: string }[] }
-        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings: bookings as { serviceId: string; date: string }[] };
+        ? { clientId: clientInfo.id, bookings }
+        : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings };
       return bookFn({ data: payload });
     },
     onSuccess: (res) => {
@@ -124,7 +133,12 @@ function BookPage() {
       localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
       setConfirmation({ code: res.code, isNew: res.isNew, appointments: res.appointments, clientId: res.clientId });
     },
-    onError: (e: Error) => toast.error(e.message ?? t("client.bookingError")),
+    onError: (e: Error) => {
+      const m = e.message;
+      if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
+      else if (m === "GENDER_MALE_ONLY") toast.error(t("client.maleOnly"));
+      else toast.error(m || t("client.bookingError"));
+    },
   });
 
 
