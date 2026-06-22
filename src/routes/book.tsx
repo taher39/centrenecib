@@ -143,20 +143,21 @@ function BookPage() {
     return (
       <div className="client-entry-shell min-h-screen bg-rose-gradient">
         <SiteHeader />
-        <main className="mx-auto max-w-md px-4 py-8 relative">
-          <div className="absolute -right-1 top-4 z-10 md:right-0">
-            <div className="group relative">
-              <QRCode url="https://centrenecib-three.vercel.app/" size={48} className="rounded-lg border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
-              <div className="absolute right-0 top-full mt-2 hidden group-hover:block">
-                <div className="rounded-xl border bg-card p-2 shadow-lg">
-                  <QRCode url="https://centrenecib-three.vercel.app/" size={120} />
-                </div>
-              </div>
-            </div>
-          </div>
+        <main className="mx-auto w-full max-w-lg lg:max-w-2xl px-4 py-8">
           <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
             <CardContent className="grid gap-4 p-6">
-              <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>
+                <div className="group relative shrink-0">
+                  <QRCode url="https://centrenecib-three.vercel.app/" size={40} className="rounded-md border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
+                  <div className="absolute right-0 top-full mt-1 z-20 hidden group-hover:block">
+                    <div className="rounded-xl border bg-card p-2 shadow-lg">
+                      <QRCode url="https://centrenecib-three.vercel.app/" size={140} />
+                      <p className="mt-1 text-[10px] text-muted-foreground text-center max-w-[140px] break-all">centrenecib-three.vercel.app</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <NewClientForm onSubmit={(info) => setClientInfo(info)} />
             </CardContent>
           </Card>
@@ -169,8 +170,8 @@ function BookPage() {
     return (
       <div className="client-entry-shell min-h-screen bg-rose-gradient">
         <SiteHeader />
-        <main className="mx-auto max-w-md px-4 py-8">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl bg-card p-8 shadow-soft text-center">
+        <main className="mx-auto w-full max-w-lg lg:max-w-xl px-4 py-8">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl bg-card p-6 sm:p-8 shadow-soft text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
               <Check className="h-8 w-8 text-primary" />
             </div>
@@ -203,8 +204,19 @@ function BookPage() {
   return (
     <div className="client-entry-shell min-h-screen bg-rose-gradient">
       <SiteHeader />
-      <main className="mx-auto max-w-3xl px-4 py-6">
-        <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
+      <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
+          <div className="group relative shrink-0">
+            <QRCode url="https://centrenecib-three.vercel.app/" size={36} className="rounded-md border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
+            <div className="absolute right-0 top-full mt-1 z-20 hidden group-hover:block">
+              <div className="rounded-xl border bg-card p-2 shadow-lg">
+                <QRCode url="https://centrenecib-three.vercel.app/" size={140} />
+                <p className="mt-1 text-[10px] text-muted-foreground text-center max-w-[140px] break-all">centrenecib-three.vercel.app</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {gallery.length > 0 && <Carousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} height="h-56 sm:h-72 md:h-80" />}
 
@@ -235,7 +247,7 @@ function BookPage() {
 
         <h2 className="font-display text-2xl text-primary">{t("client.chooseServices")}</h2>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => {
             const isSel = selected.has(s.id);
             const availDays = (s.available_days as number[]) ?? [0, 1, 2, 3, 4, 5, 6];
@@ -275,7 +287,7 @@ function BookPage() {
               </div>
             );
           })}
-          {services.length === 0 && !svcQuery.isLoading && <div className="col-span-2 rounded-xl border-2 border-dashed p-6 text-center text-muted-foreground">—</div>}
+          {services.length === 0 && !svcQuery.isLoading && <div className="sm:col-span-2 lg:col-span-3 rounded-xl border-2 border-dashed p-6 text-center text-muted-foreground">—</div>}
         </div>
 
         <div className="sticky bottom-4 mt-8">
@@ -419,13 +431,15 @@ function NewClientForm({ onSubmit }: { onSubmit: (i: { fullName: string; age: nu
   const [address, setAddress] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   return (
-    <form className="grid gap-3" onSubmit={(e) => { e.preventDefault(); if (!fullName || !phone || !age || !address || !gender) return; onSubmit({ fullName, age: Number(age), phone, address, gender }); }}>
-      <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} /></div>
+    <form className="grid gap-4" onSubmit={(e) => { e.preventDefault(); if (!fullName || !phone || !age || !address || !gender) return; onSubmit({ fullName, age: Number(age), phone, address, gender }); }}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} /></div>
+        <div className="grid gap-2"><Label>{t("common.address")}</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} required minLength={2} /></div>
+      </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="grid gap-2"><Label>{t("common.age")}</Label><Input type="number" min={10} max={99} value={age} onChange={(e) => setAge(e.target.value)} required /></div>
         <div className="grid gap-2"><Label>{t("common.phone")}</Label><Input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required /></div>
       </div>
-      <div className="grid gap-2"><Label>{t("common.address")}</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} required minLength={2} /></div>
       <div className="grid gap-2">
         <Label>{t("common.gender")}</Label>
         <div className="grid grid-cols-2 gap-3">
@@ -433,7 +447,7 @@ function NewClientForm({ onSubmit }: { onSubmit: (i: { fullName: string; age: nu
           <button type="button" onClick={() => setGender("female")} className={`h-11 rounded-xl border text-sm transition ${gender === "female" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-secondary/50"}`}>{t("common.female")}</button>
         </div>
       </div>
-      <Button type="submit" className="h-11 rounded-xl">{t("client.book")}</Button>
+      <Button type="submit" className="h-12 rounded-xl w-full sm:w-auto sm:px-8">{t("client.book")}</Button>
     </form>
   );
 }

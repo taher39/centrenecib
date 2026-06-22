@@ -114,11 +114,17 @@ function SettingsPage() {
           </div>
           <DialogFooter>
             <Button
-              onClick={() => {
-                const a = document.createElement("a");
-                a.href = qrDataUrl;
-                a.download = "centrenecib-qr.png";
-                a.click();
+              onClick={async () => {
+                try {
+                  const res = await fetch(qrDataUrl);
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = "centrenecib-qr.png";
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch { /* */ }
               }}
               disabled={!qrDataUrl}
             >

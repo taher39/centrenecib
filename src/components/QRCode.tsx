@@ -1,6 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-import QRCodeLib from "qrcode";
-
 interface Props {
   url: string;
   size?: number;
@@ -8,19 +5,10 @@ interface Props {
 }
 
 export function QRCode({ url, size = 128, className }: Props) {
-  const [dataUrl, setDataUrl] = useState("");
-  useEffect(() => {
-    QRCodeLib.toDataURL(url, { width: size * 2, margin: 1 }).then(setDataUrl).catch(() => {});
-  }, [url, size]);
-
-  if (!dataUrl) return <div className={className} style={{ width: size, height: size }} />;
-  return <img src={dataUrl} alt={`QR ${url}`} width={size} height={size} className={className} />;
+  const src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&margin=10`;
+  return <img src={src} alt={`QR ${url}`} width={size} height={size} className={className} loading="lazy" />;
 }
 
 export function useQRCodeUrl(url: string, size = 256) {
-  const [dataUrl, setDataUrl] = useState("");
-  useEffect(() => {
-    QRCodeLib.toDataURL(url, { width: size * 2, margin: 1 }).then(setDataUrl).catch(() => {});
-  }, [url, size]);
-  return dataUrl;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}&margin=10`;
 }
