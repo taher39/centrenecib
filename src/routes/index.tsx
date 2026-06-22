@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { InstallPWA } from "@/components/InstallPWA";
-import clientHeroBg from "@/assets/client-hero-bg.png.asset.json";
+import clientHeroBg from "@/assets/1780530860090.png";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -68,7 +68,7 @@ function HomePage() {
 
   return (
     <div className="client-entry-shell relative min-h-screen overflow-hidden bg-rose-gradient">
-      <div className={`pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60 md:opacity-70 ${isRtl ? "scale-x-[-1]" : ""}`} style={{ backgroundImage: `url(${clientHeroBg.url})` }} />
+      <div className="pointer-events-none absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat opacity-60 md:opacity-70" style={{ backgroundImage: `url(${clientHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
       <header className="relative z-30 mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
           <Logo size={56} />

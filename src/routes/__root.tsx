@@ -40,8 +40,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "CENTRE NECIB — Esthétique & Soins" },
       { property: "og:description", content: "Réservez vos soins esthétiques au CENTRE NECIB — exclusivement pour femmes." },
       { name: "twitter:description", content: "Réservez vos soins esthétiques au CENTRE NECIB — exclusivement pour femmes." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce069a86-f972-453b-9bd7-ca99dcc41225/id-preview-7f73ab54--5abfbd3d-d472-4f66-95ce-8c046f71abaf.lovable.app-1779214050151.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ce069a86-f972-453b-9bd7-ca99dcc41225/id-preview-7f73ab54--5abfbd3d-d472-4f66-95ce-8c046f71abaf.lovable.app-1779214050151.png" },
+
+
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { adminListClients, saveClient, deleteClient, clientDetail } from "@/lib/admin.functions";
+import { adminListClients, saveClient, deleteClient, clientDetail, adminCreateClient } from "@/lib/admin.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Edit, Trash2, Eye, Search } from "lucide-react";
+import { Edit, Trash2, Eye, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
 
@@ -25,11 +25,17 @@ function ClientsPage() {
   const saveFn = useServerFn(saveClient);
   const delFn = useServerFn(deleteClient);
   const detailFn = useServerFn(clientDetail);
+  const createFn = useServerFn(adminCreateClient);
 
   const q = useQuery({ queryKey: ["clients"], queryFn: () => listFn() });
   const [search, setSearch] = useState("");
   const [edit, setEdit] = useState<{ id: string; full_name: string; age: number | null; phone: string; notes: string | null } | null>(null);
   const [view, setView] = useState<string | null>(null);
+  const [createClientOpen, setCreateClientOpen] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientPhone, setNewClientPhone] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [newClientNotes, setNewClientNotes] = useState("");
   const detail = useQuery({ enabled: !!view, queryKey: ["client-detail", view], queryFn: () => detailFn({ data: { id: view! } }) });
 
   const items = (q.data?.items ?? []).filter((c) => !search || c.full_name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
@@ -40,13 +46,35 @@ function ClientsPage() {
     catch (e) { toast.error((e as Error).message); }
   };
 
+  const onCreateClient = async () => {
+    try { 
+      const result = await createFn({ data: { full_name: newClientName, phone: newClientPhone, email: newClientEmail, notes: newClientNotes } });
+      setCreateClientOpen(false);
+      setNewClientName("");
+      setNewClientPhone("");
+      setNewClientEmail("");
+      setNewClientNotes("");
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("✓");
+    }
+    catch (e) { toast.error((e as Error).message); }
+  };
+
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-2xl text-primary">{t("nav.clients")}</h1>
-        <div className="relative max-w-xs">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input className="ps-8" placeholder={t("common.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+        <div className="flex items-center gap-2">
+          <div className="relative max-w-xs">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input className="ps-8" placeholder={t("common.search")} value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          {can("clients", "edit") && (
+            <Button onClick={() => setCreateClientOpen(true)}>
+              <Plus className="h-4 w-4 me-1" />
+              {t("admin.createClient")}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -125,6 +153,22 @@ function ClientsPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createClientOpen} onOpenChange={(o) => { setCreateClientOpen(o); if (!o) { setNewClientName(""); setNewClientPhone(""); setNewClientEmail(""); setNewClientNotes(""); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{t("admin.createClient")}</DialogTitle></DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-2"><Label>{t("common.name")}</Label><Input value={newClientName} onChange={(e) => setNewClientName(e.target.value)} /></div>
+            <div className="grid gap-2"><Label>{t("common.phone")}</Label><Input value={newClientPhone} onChange={(e) => setNewClientPhone(e.target.value)} /></div>
+            <div className="grid gap-2"><Label>{t("common.email")}</Label><Input type="email" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} /></div>
+            <div className="grid gap-2"><Label>{t("common.notes")}</Label><Textarea value={newClientNotes} onChange={(e) => setNewClientNotes(e.target.value)} /></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateClientOpen(false)}>{t("common.cancel")}</Button>
+            <Button onClick={onCreateClient} disabled={!newClientName || !newClientPhone}>{t("common.create")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

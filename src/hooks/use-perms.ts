@@ -4,7 +4,8 @@ import { me } from "@/lib/admin.functions";
 
 export type PermScope =
   | "appointments" | "clients" | "services" | "offers"
-  | "gallery" | "invoices" | "finance" | "discounts";
+  | "gallery" | "invoices" | "finance" | "discounts"
+  | "products" | "attendance" | "reports";
 export type PermAction = "view" | "edit" | "delete";
 
 export function usePerms() {

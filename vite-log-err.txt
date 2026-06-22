@@ -1,0 +1,171 @@
+Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+    at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+    ... 8 lines matching cause stack trace ...
+    at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+  cause: Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+      at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+      at resolvePackageEntry (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32893:2)
+      at tryNodeResolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32796:70)
+      at ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32635:16)
+      at EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:56)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async ResolveIdContext.resolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:29009:13)
+      at async resolveAgainstImporter (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:880:17)
+      at async ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:939:25)
+      at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+    code: 'ERR_RESOLVE_PACKAGE_ENTRY_FAIL',
+    pos: 266,
+    plugin: 'vite:import-analysis',
+    id: 'D:/programe/centrenecib/src/routes/book.tsx',
+    pluginCode: 'const $$splitComponentImporter = () => import("D:/programe/centrenecib/src/routes/book.tsx?tsr-split=component");\n' +
+      'import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      'import { createFileRoute } from "@tanstack/react-router";\n' +
+      'import { AnimatePresence } from "framer-motion";\n' +
+      'export const Route = createFileRoute("/book")({\n' +
+      '  component: lazyRouteComponent($$splitComponentImporter, "component")\n' +
+      '});\n' +
+      'void AnimatePresence;\n',
+    loc: {
+      file: 'D:/programe/centrenecib/src/routes/book.tsx',
+      line: 16,
+      column: 40
+    },
+    frame: '2  |  import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      '3  |  import { createFileRoute } from "@tanstack/react-router";\n' +
+      '4  |  import { AnimatePresence } from "framer-motion";\n' +
+      '   |                                   ^\n' +
+      '5  |  export const Route = createFileRoute("/book")({\n' +
+      '6  |    component: lazyRouteComponent($$splitComponentImporter, "component")',
+    runnerError: Error: RunnerError
+        at reviveInvokeError (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:476:64)
+        at Object.invoke (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:549:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async ModuleRunner.getModuleInformation (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1086:7)
+        at async request (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1103:83)
+        at async eval (D:\programe\centrenecib\src\routeTree.gen.ts:13:1)
+        at async ESModulesEvaluator.runInlinedModule (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:913:3)
+        at async ModuleRunner.directRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1146:59)
+        at async ModuleRunner.cachedRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1053:73)
+        at async eval (D:\programe\centrenecib\src\router.tsx:3:1)
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+    at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+    ... 8 lines matching cause stack trace ...
+    at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+  cause: Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+      at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+      at resolvePackageEntry (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32893:2)
+      at tryNodeResolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32796:70)
+      at ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32635:16)
+      at EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:56)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async ResolveIdContext.resolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:29009:13)
+      at async resolveAgainstImporter (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:880:17)
+      at async ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:939:25)
+      at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+    code: 'ERR_RESOLVE_PACKAGE_ENTRY_FAIL',
+    pos: 266,
+    plugin: 'vite:import-analysis',
+    id: 'D:/programe/centrenecib/src/routes/book.tsx',
+    pluginCode: 'const $$splitComponentImporter = () => import("D:/programe/centrenecib/src/routes/book.tsx?tsr-split=component");\n' +
+      'import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      'import { createFileRoute } from "@tanstack/react-router";\n' +
+      'import { AnimatePresence } from "framer-motion";\n' +
+      'export const Route = createFileRoute("/book")({\n' +
+      '  component: lazyRouteComponent($$splitComponentImporter, "component")\n' +
+      '});\n' +
+      'void AnimatePresence;\n',
+    loc: {
+      file: 'D:/programe/centrenecib/src/routes/book.tsx',
+      line: 16,
+      column: 40
+    },
+    frame: '2  |  import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      '3  |  import { createFileRoute } from "@tanstack/react-router";\n' +
+      '4  |  import { AnimatePresence } from "framer-motion";\n' +
+      '   |                                   ^\n' +
+      '5  |  export const Route = createFileRoute("/book")({\n' +
+      '6  |    component: lazyRouteComponent($$splitComponentImporter, "component")',
+    runnerError: Error: RunnerError
+        at reviveInvokeError (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:476:64)
+        at Object.invoke (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:549:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async ModuleRunner.getModuleInformation (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1086:7)
+        at async request (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1103:83)
+        at async eval (D:\programe\centrenecib\src\routeTree.gen.ts:13:1)
+        at async ESModulesEvaluator.runInlinedModule (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:913:3)
+        at async ModuleRunner.directRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1146:59)
+        at async ModuleRunner.cachedRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1053:73)
+        at async eval (D:\programe\centrenecib\src\router.tsx:3:1)
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+    at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+    ... 8 lines matching cause stack trace ...
+    at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+  cause: Error: Failed to resolve entry for package "framer-motion". The package may have incorrect main/module/exports specified in its package.json.
+      at packageEntryFailure (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32896:32)
+      at resolvePackageEntry (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32893:2)
+      at tryNodeResolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32796:70)
+      at ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:32635:16)
+      at EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:56)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async ResolveIdContext.resolve (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:29009:13)
+      at async resolveAgainstImporter (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:880:17)
+      at async ResolveIdContext.handler (file:///D:/programe/centrenecib/node_modules/@tanstack/start-plugin-core/dist/esm/vite/import-protection-plugin/plugin.js:939:25)
+      at async EnvironmentPluginContainer.resolveId (file:///D:/programe/centrenecib/node_modules/vite/dist/node/chunks/config.js:28797:19) {
+    code: 'ERR_RESOLVE_PACKAGE_ENTRY_FAIL',
+    pos: 266,
+    plugin: 'vite:import-analysis',
+    id: 'D:/programe/centrenecib/src/routes/book.tsx',
+    pluginCode: 'const $$splitComponentImporter = () => import("D:/programe/centrenecib/src/routes/book.tsx?tsr-split=component");\n' +
+      'import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      'import { createFileRoute } from "@tanstack/react-router";\n' +
+      'import { AnimatePresence } from "framer-motion";\n' +
+      'export const Route = createFileRoute("/book")({\n' +
+      '  component: lazyRouteComponent($$splitComponentImporter, "component")\n' +
+      '});\n' +
+      'void AnimatePresence;\n',
+    loc: {
+      file: 'D:/programe/centrenecib/src/routes/book.tsx',
+      line: 16,
+      column: 40
+    },
+    frame: '2  |  import { lazyRouteComponent } from "@tanstack/react-router";\n' +
+      '3  |  import { createFileRoute } from "@tanstack/react-router";\n' +
+      '4  |  import { AnimatePresence } from "framer-motion";\n' +
+      '   |                                   ^\n' +
+      '5  |  export const Route = createFileRoute("/book")({\n' +
+      '6  |    component: lazyRouteComponent($$splitComponentImporter, "component")',
+    runnerError: Error: RunnerError
+        at reviveInvokeError (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:476:64)
+        at Object.invoke (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:549:11)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async ModuleRunner.getModuleInformation (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1086:7)
+        at async request (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1103:83)
+        at async eval (D:\programe\centrenecib\src\routeTree.gen.ts:13:1)
+        at async ESModulesEvaluator.runInlinedModule (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:913:3)
+        at async ModuleRunner.directRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1146:59)
+        at async ModuleRunner.cachedRequest (file:///D:/programe/centrenecib/node_modules/vite/dist/node/module-runner.js:1053:73)
+        at async eval (D:\programe\centrenecib\src\router.tsx:3:1)
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}

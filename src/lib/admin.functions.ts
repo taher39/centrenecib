@@ -10,7 +10,18 @@ function admin() {
   });
 }
 
-type PermScope = "appointments" | "clients" | "services" | "offers" | "gallery" | "invoices" | "finance" | "discounts";
+type PermScope =
+  | "appointments"
+  | "clients"
+  | "services"
+  | "offers"
+  | "gallery"
+  | "invoices"
+  | "finance"
+  | "discounts"
+  | "products"
+  | "attendance"
+  | "reports";
 type PermAction = "view" | "edit" | "delete";
 
 async function isAdminUser(userId: string) {
@@ -179,6 +190,19 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
           quantity: 1,
           unit_price: price,
           total: price,
+        });
+      }
+
+      // Auto-create medical report if one doesn't exist
+      const { data: existingReport } = await sb
+        .from("medical_reports")
+        .select("id")
+        .eq("client_id", appt.client_id)
+        .maybeSingle();
+      if (!existingReport) {
+        await sb.from("medical_reports").insert({
+          client_id: appt.client_id,
+          description: svcName,
         });
       }
     }
@@ -789,4 +813,253 @@ export const updateMyCredentials = createServerFn({ method: "POST" })
     if (Object.keys(roleUpdate).length) await sb.from("user_roles").update(roleUpdate).eq("user_id", context.userId);
     await logActivity(context.userId, null, "update", "credentials");
     return { ok: true };
+  });
+
+// ===== Products =====
+const productSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().min(1).max(120),
+  price: z.number().min(0),
+  stock: z.number().int().optional().nullable(),
+  active: z.boolean().optional(),
+});
+
+export const adminListProducts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const sb = admin();
+    const { data } = await sb.from("products").select("*").order("name");
+    return { items: data ?? [] };
+  });
+
+export const saveProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => productSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "products", "edit");
+    const sb = admin();
+    const { id, ...rest } = data;
+    if (id) {
+      await sb.from("products").update(rest).eq("id", id);
+      await logActivity(context.userId, null, "update", "product", id);
+    } else {
+      const { data: created } = await sb.from("products").insert(rest).select().single();
+      await logActivity(context.userId, null, "create", "product", created?.id);
+    }
+    return { ok: true };
+  });
+
+export const deleteProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "products", "delete");
+    const sb = admin();
+    await sb.from("products").delete().eq("id", data.id);
+    await logActivity(context.userId, null, "delete", "product", data.id);
+    return { ok: true };
+  });
+
+// ===== Attendance =====
+export const adminListAttendance = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { date?: string }) => z.object({ date: z.string().optional() }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = admin();
+    const date = data.date ?? new Date().toISOString().slice(0, 10);
+    const { data: items } = await sb
+      .from("appointments")
+      .select("*, clients(full_name, phone, code), services(name, price_dzd)")
+      .eq("appointment_date", date)
+      .in("status", ["confirmed", "completed"])
+      .order("appointment_time");
+    return { items: items ?? [] };
+  });
+
+export const markAttendance = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), attendance: z.string().nullable() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "attendance", "edit");
+    const sb = admin();
+    await sb.from("appointments").update({ attendance: data.attendance }).eq("id", data.id);
+    return { ok: true };
+  });
+
+export const adminListPresentToday = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const sb = admin();
+    const today = new Date().toISOString().slice(0, 10);
+    const { data } = await sb
+      .from("appointments")
+      .select("*, clients(full_name, phone, code), services(name, price_dzd)")
+      .eq("appointment_date", today)
+      .eq("attendance", "present")
+      .order("appointment_time");
+    return { items: data ?? [] };
+  });
+
+// ===== Medical Reports =====
+export const listMedicalReports = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const sb = admin();
+    const { data } = await sb
+      .from("medical_reports")
+      .select("*, clients(full_name, phone, code, age, address, gender)")
+      .order("created_at", { ascending: false });
+    return { items: data ?? [] };
+  });
+
+export const getMedicalReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { clientId: string }) => z.object({ clientId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = admin();
+    const { data: report } = await sb
+      .from("medical_reports")
+      .select("*, clients(full_name, phone, code, age, address, gender)")
+      .eq("client_id", data.clientId)
+      .maybeSingle();
+    const { data: appointments } = await sb
+      .from("appointments")
+      .select("*, services(name, duration_min)")
+      .eq("client_id", data.clientId)
+      .order("appointment_date", { ascending: false });
+    const { data: notes } = await sb
+      .from("report_notes")
+      .select("*")
+      .eq("report_id", report?.id ?? "")
+      .order("created_at", { ascending: false });
+    return { report: report ?? null, appointments: appointments ?? [], notes: notes ?? [] };
+  });
+
+export const saveMedicalReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        client_id: z.string().uuid(),
+        diagnosis: z.string().nullable().optional(),
+        description: z.string().nullable().optional(),
+        recommendations: z.string().nullable().optional(),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "reports", "edit");
+    const sb = admin();
+    const { data: existing } = await sb.from("medical_reports").select("id").eq("client_id", data.client_id).maybeSingle();
+    if (existing) {
+      await sb.from("medical_reports").update(data).eq("id", existing.id);
+    } else {
+      await sb.from("medical_reports").insert(data);
+    }
+    await logActivity(context.userId, null, "save_report", "medical_report", data.client_id);
+    return { ok: true };
+  });
+
+export const addReportNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ reportId: z.string().uuid(), note: z.string().min(1) }).parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "reports", "edit");
+    const sb = admin();
+    await sb.from("report_notes").insert({ report_id: data.reportId, note: data.note, created_by: context.userId });
+    return { ok: true };
+  });
+
+export const deleteReportNote = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "reports", "delete");
+    const sb = admin();
+    await sb.from("report_notes").delete().eq("id", data.id);
+    return { ok: true };
+  });
+
+// ===== Manual Booking =====
+export const adminCreateAppointment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        clientId: z.string().uuid(),
+        serviceId: z.string().uuid(),
+        date: z.string(),
+        time: z.string().optional().nullable(),
+        notes: z.string().optional().nullable(),
+      })
+      .parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "appointments", "edit");
+    const sb = admin();
+    const time = data.time ? (data.time.length === 5 ? data.time + ":00" : data.time) : null;
+    const { data: appt, error } = await sb
+      .from("appointments")
+      .insert({
+        client_id: data.clientId,
+        service_id: data.serviceId,
+        appointment_date: data.date,
+        appointment_time: time,
+        notes: data.notes,
+        status: "confirmed",
+        is_read: true,
+      })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    await logActivity(context.userId, null, "create_manual", "appointment", appt.id);
+    return { ok: true };
+  });
+
+// ===== Clients =====
+const clientSchema = z.object({
+  full_name: z.string().min(1).max(80),
+  phone: z.string().min(1).max(20),
+  notes: z.string().max(500).optional().nullable(),
+});
+
+
+export const adminCreateClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => clientSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "clients", "edit");
+    const sb = admin();
+    
+    // Check if client already exists with this phone number
+    const { data: existingClient } = await sb
+      .from("clients")
+      .select("id")
+      .eq("phone", data.phone)
+      .maybeSingle();
+      
+    if (existingClient) {
+      throw new Error("هذا العميل موجود مسبقاً بنفس رقم الهاتف");
+    }
+    
+    const { data: genCode } = await sb.rpc("generate_client_code");
+    const code = genCode as string;
+    
+    const { data: newClient, error } = await sb
+      .from("clients")
+      .insert({
+        code,
+        full_name: data.full_name,
+        phone: data.phone,
+        notes: data.notes,
+      })
+      .select()
+      .single();
+      
+    if (error) throw new Error(error.message);
+    
+    await logActivity(context.userId, null, "create", "client", newClient.id);
+    return { ok: true, client: newClient };
   });

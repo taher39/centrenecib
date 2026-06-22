@@ -82,36 +82,33 @@ function BookPage() {
 
   // Generate next 21 days, then filter per service by available_days
   const next21 = useMemo(() => {
-    const arr: { value: string; dow: number; dayLabel: string }[] = [];
+    const arr: { value: string; dow: number; dayLabel: string; dayLabelShort: string; fullDate: string }[] = [];
     for (let i = 0; i < 21; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const dow = d.getDay();
+      const dayNum = String(d.getDate()).padStart(2, "0");
+      const monthNum = String(d.getMonth() + 1).padStart(2, "0");
       arr.push({
         value: d.toISOString().slice(0, 10),
         dow,
-        dayLabel: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`,
+        dayLabel: `${isAr ? DAYS_AR[dow] : DAYS_FR[dow]} ${dayNum}/${monthNum}`,
+        dayLabelShort: `${isAr ? DAYS_AR[dow].slice(0, 2) : DAYS_FR[dow].slice(0, 3)}`,
+        fullDate: `${dayNum}/${monthNum}`,
       });
     }
     return arr;
   }, [isAr]);
 
-  const toggle = (svc: { id: string; gender_target?: string | null; name: string; available_days?: number[] | null }) => {
+  const toggle = (svc: { id: string; gender_target?: string | null; name: string; description?: string | null; price_dzd?: number | null; duration_min?: number | null; available_days?: number[] | null }) => {
     const gt = svc.gender_target ?? "both";
     if (gt !== "both" && clientInfo?.gender && gt !== clientInfo.gender) {
       toast.error(gt === "female" ? t("client.femaleOnly") : t("client.maleOnly"));
       return;
     }
-    setSelected((s) => {
-      const n = new Set(s);
-      if (n.has(svc.id)) { n.delete(svc.id); setDates((d) => { const x = { ...d }; delete x[svc.id]; return x; }); }
-      else {
-        n.add(svc.id);
-        // open glass picker right away
-        setDatePicker({ serviceId: svc.id, name: svc.name, days: (svc.available_days as number[]) ?? [0,1,2,3,4,5,6] });
-      }
-      return n;
-    });
+    // Open glass picker directly (selects service automatically)
+    setSelected((s) => { const n = new Set(s); n.add(svc.id); return n; });
+    setDatePicker({ serviceId: svc.id, name: svc.name, days: (svc.available_days as number[]) ?? [0,1,2,3,4,5,6] });
   };
 
   const mutation = useMutation({
@@ -279,44 +276,64 @@ function BookPage() {
 
       </main>
 
-      {/* Glass date picker dialog */}
-      <Dialog open={!!datePicker} onOpenChange={(o) => !o && setDatePicker(null)}>
-        <DialogContent className="glass-panel sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-display text-primary">{datePicker?.name}</DialogTitle>
+      {/* Glass date picker – full screen on mobile, centered on desktop */}
+      <Dialog open={!!datePicker} onOpenChange={(o) => { if (!o) { setDatePicker(null); if (datePicker && (dates[datePicker.serviceId]?.length ?? 0) === 0) { setSelected((s) => { const n = new Set(s); n.delete(datePicker.serviceId); return n; }); } } }}>
+        <DialogContent className="glass-panel flex max-h-[90dvh] flex-col border-none p-0 sm:max-w-lg sm:rounded-2xl sm:border sm:p-0">
+          <DialogHeader className="px-5 pt-12 pb-1 text-center sm:pt-5">
+            <DialogTitle className="font-display text-xl text-primary">{datePicker?.name}</DialogTitle>
+            <p className="text-xs text-muted-foreground/70">{t("client.pickDates")}</p>
           </DialogHeader>
-          <div className="grid gap-3">
-            <div className="text-sm text-muted-foreground">{t("client.pickDates")}</div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[50vh] overflow-y-auto p-1">
-              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).map((d) => {
-                const list = dates[datePicker.serviceId] ?? [];
-                const sel = list.includes(d.value);
-                return (
-                  <button
-                    key={d.value}
-                    type="button"
-                    onClick={() => setDates((prev) => {
-                      const cur = prev[datePicker.serviceId] ?? [];
-                      const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
-                      return { ...prev, [datePicker.serviceId]: next };
-                    })}
-                    className={`rounded-xl border px-2 py-3 text-xs transition ${sel ? "border-primary bg-primary text-primary-foreground shadow-soft" : "border-white/40 bg-card/60 hover:bg-card/90"}`}
-                  >
-                    {d.dayLabel}
-                  </button>
-                );
-              })}
-              {datePicker && next21.filter((d) => datePicker.days.includes(d.dow)).length === 0 && (
-                <div className="col-span-full text-xs text-muted-foreground text-center py-8">—</div>
-              )}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {t("client.daysSelected", { n: (datePicker ? dates[datePicker.serviceId]?.length ?? 0 : 0) })}
+          <div className="flex-1 overflow-y-auto px-5 pb-2">
+            {datePicker && (() => {
+              const filtered = next21.filter((d) => datePicker.days.includes(d.dow));
+              const weeks = [];
+              for (let i = 0; i < filtered.length; i += 7) {
+                weeks.push(filtered.slice(i, i + 7));
+              }
+              return (
+                <div className="grid gap-4">
+                  {weeks.map((week, wi) => (
+                    <div key={wi}>
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {week.map((d) => {
+                          const list = dates[datePicker.serviceId] ?? [];
+                          const sel = list.includes(d.value);
+                          return (
+                            <button
+                              key={d.value}
+                              type="button"
+                              onClick={() => setDates((prev) => {
+                                const cur = prev[datePicker.serviceId] ?? [];
+                                const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
+                                return { ...prev, [datePicker.serviceId]: next };
+                              })}
+                              className={`relative flex flex-col items-center rounded-xl border-2 py-2.5 text-center transition-all active:scale-90 ${
+                                sel
+                                  ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/30"
+                                  : "border-white/20 bg-white/5 text-foreground hover:border-primary/40 hover:bg-white/10"
+                              }`}
+                            >
+                              <span className={`text-[9px] font-semibold uppercase tracking-wider ${sel ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{d.dayLabelShort}</span>
+                              <span className={`text-base font-extrabold leading-tight ${sel ? "" : ""}`}>{d.fullDate.split("/")[0]}</span>
+                              <span className={`text-[9px] ${sel ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{d.fullDate.split("/")[1]}</span>
+                              {sel && <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-foreground"><Check className="h-2.5 w-2.5 text-primary" /></div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                  {weeks.length === 0 && <div className="py-10 text-center text-xs text-muted-foreground/50">—</div>}
+                </div>
+              );
+            })()}
+          </div>
+          <div className="sticky bottom-0 rounded-b-2xl border-t border-white/10 bg-black/5 px-5 py-3 backdrop-blur-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{t("client.daysSelected", { n: (datePicker ? dates[datePicker.serviceId]?.length ?? 0 : 0) })}</span>
+              <Button size="sm" onClick={() => setDatePicker(null)} className="rounded-xl px-6">{t("client.doneSelect")}</Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => setDatePicker(null)}>{t("client.doneSelect")}</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

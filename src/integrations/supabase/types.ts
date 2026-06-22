@@ -439,6 +439,38 @@ export type Database = {
           },
         ]
       }
+      report_notes: {
+        Row: {
+          id: string
+          report_id: string
+          note: string
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          report_id: string
+          note: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          report_id?: string
+          note?: string
+          created_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_notes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "medical_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           active: boolean
