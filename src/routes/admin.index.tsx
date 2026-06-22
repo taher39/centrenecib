@@ -19,6 +19,7 @@ import { useMemo, useState } from "react";
 import { Trash2, Bell, Plus, Calendar as CalendarIcon, User, Search, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/admin/")({ component: AdminAppointmentsPage });
 
@@ -68,6 +69,9 @@ function AdminAppointmentsPage() {
   const [manual, setManual] = useState(false);
   const [createClientOpen, setCreateClientOpen] = useState(false);
   const [presentOpen, setPresentOpen] = useState(false);
+  const [tabPages, setTabPages] = useState<Record<string, number>>({});
+  const getPage = (k: string) => tabPages[k] ?? 1;
+  const setPage = (k: string, p: number) => setTabPages((prev) => ({ ...prev, [k]: p }));
 
   const presentFn = useServerFn(adminListPresentToday);
   const presentQ = useQuery({ queryKey: ["present-today"], queryFn: () => presentFn(), enabled: presentOpen });
@@ -124,10 +128,15 @@ function AdminAppointmentsPage() {
           <TabsTrigger value="cancelled">{t("admin.appointmentsCancelled")} ({filtered.cancelled.length})</TabsTrigger>
           <TabsTrigger value="postponed">{t("admin.appointmentsPostponed")} ({filtered.postponed.length})</TabsTrigger>
         </TabsList>
-        {(Object.entries(filtered) as [keyof typeof filtered, typeof items][]).map(([k, list]) => (
+        {(Object.entries(filtered) as [keyof typeof filtered, typeof items][]).map(([k, list]) => {
+          const p = getPage(k);
+          const perPage = 30;
+          const tp = Math.ceil(list.length / perPage);
+          const sliced = list.slice((p - 1) * perPage, p * perPage);
+          return (
           <TabsContent key={k} value={k} className="mt-4 grid gap-2">
             {list.length === 0 && <div className="rounded-xl border-2 border-dashed p-6 text-center text-muted-foreground">—</div>}
-            {list.map((a) => {
+            {sliced.map((a) => {
               const client = (a as { clients?: { full_name?: string; phone?: string; code?: string } }).clients;
               const svc = (a as { services?: { name?: string; price_dzd?: number; duration_min?: number } }).services;
               const off = (a as { offers?: { title?: string; offer_price?: number } }).offers;
@@ -170,8 +179,10 @@ function AdminAppointmentsPage() {
                 </Card>
               );
             })}
+            <Pagination page={p} totalPages={tp} onPageChange={(np) => setPage(k, np)} />
           </TabsContent>
-        ))}
+        );
+      })}
       </Tabs>
 
       <Dialog open={!!postpone} onOpenChange={(o) => !o && setPostpone(null)}>

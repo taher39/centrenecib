@@ -17,10 +17,11 @@ import {
   Search, FileText, User, ChevronRight, Phone, MapPin, Cake,
   Calendar, Clock, Plus, Trash2, Award, Activity,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/admin/reports")({ component: AdminReportsPage });
 
@@ -29,6 +30,8 @@ function AdminReportsPage() {
   const { can } = usePerms();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 30;
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [newNote, setNewNote] = useState("");
 
@@ -115,6 +118,10 @@ function AdminReportsPage() {
     );
   }, [listQ.data?.items, search]);
 
+  const totalPages = Math.ceil(filtered.length / perPage);
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+  useEffect(() => { setPage(1); }, [search]);
+
   return (
     <div className="grid gap-6">
       <div className="flex items-center justify-between">
@@ -131,7 +138,7 @@ function AdminReportsPage() {
       </div>
 
       <div className="grid gap-3">
-        {filtered.map((item) => {
+        {paginated.map((item) => {
           const client = (item as any).clients;
           return (
             <Card
@@ -157,12 +164,14 @@ function AdminReportsPage() {
             </Card>
           );
         })}
-        {filtered.length === 0 && !listQ.isLoading && (
+          {filtered.length === 0 && !listQ.isLoading && (
           <div className="rounded-xl border-2 border-dashed p-12 text-center text-muted-foreground">
             {t("admin.noReports")}
           </div>
         )}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={!!selectedClientId} onOpenChange={(o) => !o && closeReport()}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">

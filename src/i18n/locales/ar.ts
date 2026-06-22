@@ -1,7 +1,7 @@
 export default {
   brand: { name: "مركز نسيب", tagline: "للعلاج التجميلي و العناية الجسدية", exclusive: "" },
   nav: { home: "الرئيسية", appointments: "المواعيد", clients: "العملاء", services: "الجلسات", invoices: "الفواتير", finance: "الحساب", offers: "العروض", gallery: "الصور", staff: "السكرتيرات", activity: "سجل النشاطات", settings: "الإعدادات", logout: "خروج", products: "المنتجات", attendance: "الحضور", reports: "التقارير الطبية" },
-  common: { save: "حفظ", cancel: "إلغاء", confirm: "تأكيد", delete: "حذف", edit: "تعديل", add: "إضافة", search: "بحث", loading: "جاري التحميل…", today: "اليوم", tomorrow: "غداً", currency: "دج", back: "رجوع", actions: "إجراءات", date: "التاريخ", time: "الوقت", price: "السعر", duration: "المدة", minutes: "دقيقة", name: "الاسم", phone: "الهاتف", age: "العمر", address: "العنوان", gender: "الجنس", male: "ذكر", female: "أنثى", notes: "ملاحظات", total: "المجموع", required: "حقل مطلوب", install: "تثبيت التطبيق", language: "اللغة", create: "إنشاء", close: "إغلاق", print: "طباعة" },
+  common: { save: "حفظ", cancel: "إلغاء", confirm: "تأكيد", delete: "حذف", edit: "تعديل", add: "إضافة", search: "بحث", loading: "جاري التحميل…", today: "اليوم", tomorrow: "غداً", currency: "دج", back: "رجوع", actions: "إجراءات", date: "التاريخ", time: "الوقت", price: "السعر", duration: "المدة", minutes: "دقيقة", name: "الاسم", phone: "الهاتف", age: "العمر", address: "العنوان", gender: "الجنس", male: "ذكر", female: "أنثى", notes: "ملاحظات", total: "المجموع", required: "حقل مطلوب",     install: "تثبيت التطبيق", language: "اللغة", create: "إنشاء", close: "إغلاق", print: "طباعة", previous: "السابق", next: "التالي", page: "صفحة" },
   client: {
     welcome: "أهلاً بك",
     loginTitle: "ادخل إلى عالم الجمال",

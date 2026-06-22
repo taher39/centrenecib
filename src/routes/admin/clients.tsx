@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Edit, Trash2, Eye, Search, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/admin/clients")({ component: ClientsPage });
 
@@ -29,6 +30,12 @@ function ClientsPage() {
 
   const q = useQuery({ queryKey: ["clients"], queryFn: () => listFn() });
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const perPage = 30;
+  const items = (q.data?.items ?? []).filter((c) => !search || c.full_name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
+  const totalPages = Math.ceil(items.length / perPage);
+  const paginated = items.slice((page - 1) * perPage, page * perPage);
+  useEffect(() => { setPage(1); }, [search]);
   const [edit, setEdit] = useState<{ id: string; full_name: string; age: number | null; phone: string; notes: string | null } | null>(null);
   const [view, setView] = useState<string | null>(null);
   const [createClientOpen, setCreateClientOpen] = useState(false);
@@ -37,8 +44,6 @@ function ClientsPage() {
   const [newClientEmail, setNewClientEmail] = useState("");
   const [newClientNotes, setNewClientNotes] = useState("");
   const detail = useQuery({ enabled: !!view, queryKey: ["client-detail", view], queryFn: () => detailFn({ data: { id: view! } }) });
-
-  const items = (q.data?.items ?? []).filter((c) => !search || c.full_name.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search));
 
   const onSave = async () => {
     if (!edit) return;
@@ -79,7 +84,7 @@ function ClientsPage() {
       </div>
 
       <div className="grid gap-2">
-        {items.map((c) => {
+        {paginated.map((c) => {
           const debt = Number(c.debt);
           const color = debt > 0 ? "border-destructive/50 bg-destructive/5" : c.hasPending ? "border-pending bg-pending/10" : "";
           return (
@@ -101,6 +106,8 @@ function ClientsPage() {
           );
         })}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent>

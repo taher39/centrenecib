@@ -15,6 +15,7 @@ import { Trash2, Edit, Printer } from "lucide-react";
 import { toast } from "sonner";
 import { InvoicePrintView, openPrintWindow } from "@/components/InvoicePrintView";
 import { usePerms } from "@/hooks/use-perms";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/admin/invoices")({ component: InvoicesPage });
 
@@ -41,6 +42,11 @@ function InvoicesPage() {
 
   const [edit, setEdit] = useState<Inv | null>(null);
   const [printInv, setPrintInv] = useState<Inv | null>(null);
+  const [page, setPage] = useState(1);
+  const perPage = 30;
+  const items = q.data?.items ?? [];
+  const totalPages = Math.ceil(items.length / perPage);
+  const paginated = items.slice((page - 1) * perPage, page * perPage);
 
   const onSave = async () => {
     if (!edit) return;
@@ -67,7 +73,7 @@ function InvoicesPage() {
         <Badge className="bg-gold text-gold-foreground">{t("admin.discountsTotal")}: {discTotal.toLocaleString()} {t("common.currency")}</Badge>
       </div>
       <div className="grid gap-2">
-        {(q.data?.items ?? []).map((i) => {
+        {paginated.map((i) => {
           const inv = i as Inv;
           const rem = Number(inv.total) - Number(inv.amount_paid);
           return (
@@ -91,6 +97,8 @@ function InvoicesPage() {
           );
         })}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent>

@@ -6,10 +6,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Calendar as CalendarIcon, UserCheck } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
+import { Pagination } from "@/components/Pagination";
 
 export const Route = createFileRoute("/admin/attendance")({ component: AdminAttendancePage });
 
@@ -27,6 +28,13 @@ function AdminAttendancePage() {
     queryKey: ["attendance", date], 
     queryFn: () => listFn({ data: { date } }) 
   });
+
+  const [page, setPage] = useState(1);
+  const perPage = 30;
+  const items = q.data?.items ?? [];
+  const totalPages = Math.ceil(items.length / perPage);
+  const paginated = items.slice((page - 1) * perPage, page * perPage);
+  useEffect(() => { setPage(1); }, [date]);
 
   const onMark = async (id: string, attendance: string | null) => {
     try {
@@ -54,7 +62,7 @@ function AdminAttendancePage() {
       </div>
 
       <div className="grid gap-2">
-        {(q.data?.items ?? []).map((a) => {
+        {paginated.map((a) => {
           const client = (a as any).clients as { full_name?: string; phone?: string; code?: string } | null;
           const svc = (a as any).services as { name?: string; price_dzd?: number } | null;
           return (
@@ -106,6 +114,7 @@ function AdminAttendancePage() {
             </Card>
           );
         })}
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         {q.data?.items?.length === 0 && !q.isLoading && (
           <div className="rounded-xl border-2 border-dashed p-12 text-center text-muted-foreground">
             {date === today ? t("admin.noAppointments") || t("common.today") : date}
