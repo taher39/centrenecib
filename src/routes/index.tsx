@@ -66,7 +66,7 @@ function HomePage() {
 
   return (
     <div className="client-entry-shell relative min-h-screen overflow-hidden bg-rose-gradient">
-      <div className="pointer-events-none absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat opacity-60 md:opacity-70" style={{ backgroundImage: `url(${clientHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
+      <img src={clientHeroBg} alt="" className="pointer-events-none absolute inset-0 w-full h-full object-contain md:object-cover object-center opacity-60 md:opacity-70" />
       <SiteHeader variant="client" />
 
       <AnimatePresence>
