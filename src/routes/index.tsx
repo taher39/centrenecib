@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import clientHeroBg from "@/assets/1780530860090.png";
+import { QRCode } from "@/components/QRCode";
 
 export const Route = createFileRoute("/")({ component: HomePage });
 
@@ -116,7 +117,10 @@ function HomePage() {
       </main>
 
       <footer className="relative z-0 pb-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} {t("brand.name")}
+        <div className="mb-3 flex justify-center">
+          <QRCode url="https://centrenecib-three.vercel.app/" size={80} className="rounded-lg border border-border/30 bg-white/80 p-1 shadow-sm" />
+        </div>
+        <p>© {new Date().getFullYear()} {t("brand.name")}</p>
       </footer>
     </div>
   );

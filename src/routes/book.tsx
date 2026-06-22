@@ -14,7 +14,6 @@ import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { QRCode } from "@/components/QRCode";
 
 import { Carousel } from "@/components/Carousel";
 
@@ -146,18 +145,7 @@ function BookPage() {
         <main className="mx-auto w-full max-w-lg lg:max-w-2xl px-4 py-8">
           <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
             <CardContent className="grid gap-4 p-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>
-                <div className="group relative shrink-0">
-                  <QRCode url="https://centrenecib-three.vercel.app/" size={40} className="rounded-md border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
-                  <div className="absolute right-0 top-full mt-1 z-20 hidden group-hover:block">
-                    <div className="rounded-xl border bg-card p-2 shadow-lg">
-                      <QRCode url="https://centrenecib-three.vercel.app/" size={140} />
-                      <p className="mt-1 text-[10px] text-muted-foreground text-center max-w-[140px] break-all">centrenecib-three.vercel.app</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>
               <NewClientForm onSubmit={(info) => setClientInfo(info)} />
             </CardContent>
           </Card>
@@ -205,18 +193,7 @@ function BookPage() {
     <div className="client-entry-shell min-h-screen bg-rose-gradient">
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
-          <div className="group relative shrink-0">
-            <QRCode url="https://centrenecib-three.vercel.app/" size={36} className="rounded-md border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
-            <div className="absolute right-0 top-full mt-1 z-20 hidden group-hover:block">
-              <div className="rounded-xl border bg-card p-2 shadow-lg">
-                <QRCode url="https://centrenecib-three.vercel.app/" size={140} />
-                <p className="mt-1 text-[10px] text-muted-foreground text-center max-w-[140px] break-all">centrenecib-three.vercel.app</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div className="mb-4 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
 
         {gallery.length > 0 && <Carousel images={gallery.map((g) => ({ url: g.image_url, caption: g.caption }))} height="h-56 sm:h-72 md:h-80" />}
 
