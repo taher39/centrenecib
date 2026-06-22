@@ -69,6 +69,9 @@ function AdminLayout() {
 
   return (
     <div className={`min-h-screen bg-background flex ${isAr ? "flex-row-reverse" : ""}`}>
+      {/* Mobile backdrop */}
+      {open && <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setOpen(false)} />}
+
       {/* Sidebar */}
       <aside className={`${open ? "translate-x-0" : isAr ? "translate-x-full" : "-translate-x-full"} md:translate-x-0 fixed md:sticky top-0 z-40 h-screen w-64 shrink-0 border-e bg-sidebar text-sidebar-foreground transition-transform`}>
         <div className="flex h-16 items-center gap-3 border-b px-4">
