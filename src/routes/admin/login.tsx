@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { logAdminLogin } from "@/lib/admin.functions";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +18,7 @@ function AdminLoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const logLogin = useServerFn(logAdminLogin);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,8 +26,8 @@ function AdminLoginPage() {
     // username -> synthetic email so Supabase Auth accepts it
     const email = `${username.toLowerCase().trim()}@nassib.local`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) { toast.error(t("admin.badCredentials")); return; }
+    if (error) { setBusy(false); toast.error(t("admin.badCredentials")); return; }
+    logLogin().catch(() => {});
     window.location.href = "/admin";
   };
 

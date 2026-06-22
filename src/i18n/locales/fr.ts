@@ -93,6 +93,8 @@ export default {
     genderFemale: "Femmes uniquement",
     genderBoth: "Les deux",
     myQrCode: "Mon QR Code",
+    filterByType: "Filtrer par type",
+    allActivities: "Toutes",
   },
   invoice: {
     title: "FACTURE", number: "N°", date: "Date", client: "Cliente",

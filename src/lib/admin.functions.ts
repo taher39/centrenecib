@@ -777,12 +777,30 @@ export const deleteStaff = createServerFn({ method: "POST" })
   });
 
 // ===== Activity =====
+export const logAdminLogin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = admin();
+    await logActivity(context.userId, null, "login", "auth");
+  });
+
+export const logAdminLogout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sb = admin();
+    await logActivity(context.userId, null, "logout", "auth");
+  });
+
 export const listActivity = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await requireAdmin(context.userId);
     const sb = admin();
-    const { data } = await sb.from("activity_log").select("*").order("created_at", { ascending: false }).limit(200);
+    const d30 = new Date(Date.now() - 30 * 86400000).toISOString();
+    const d90 = new Date(Date.now() - 90 * 86400000).toISOString();
+    await sb.from("activity_log").delete().in("action", ["login", "logout"]).lt("created_at", d30);
+    await sb.from("activity_log").delete().not("action", "in", '("login","logout")').lt("created_at", d90);
+    const { data } = await sb.from("activity_log").select("*").order("created_at", { ascending: false }).limit(1000);
     const ids = Array.from(new Set((data ?? []).map((a) => a.actor_id).filter(Boolean) as string[]));
     const { data: roles } = await sb.from("user_roles").select("user_id, display_name, username").in("user_id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
     const nameMap = Object.fromEntries((roles ?? []).map((r) => [r.user_id, r.display_name ?? r.username ?? "—"]));

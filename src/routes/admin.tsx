@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useLocation, useNavigate, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { me } from "@/lib/admin.functions";
+import { me, logAdminLogout } from "@/lib/admin.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { LangSwitcher } from "@/components/LangSwitcher";
@@ -65,7 +65,8 @@ function AdminLayout() {
     return (meQ.data?.perms ?? []).some((p) => p.scope === item.scope && (p.action === "view" || p.action === "edit"));
   };
 
-  const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
+  const logOutFn = useServerFn(logAdminLogout);
+  const signOut = async () => { logOutFn().catch(() => {}); await supabase.auth.signOut(); navigate({ to: "/admin/login" }); };
 
   return (
     <div className={`min-h-screen bg-background flex ${isAr ? "flex-row-reverse" : ""}`}>

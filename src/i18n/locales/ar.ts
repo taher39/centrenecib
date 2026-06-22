@@ -84,6 +84,8 @@ export default {
     noReports: "لم يتم العثور على تقارير",
     setTimeNeeded: "حدد الوقت",
     myQrCode: "الكيو آر كود الخاص بي",
+    filterByType: "تصفية حسب النوع",
+    allActivities: "الكل",
   },
   invoice: {
     title: "فاتورة", number: "رقم", date: "التاريخ", client: "الزبون",
