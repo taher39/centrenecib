@@ -4,8 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { listServices, book, loginByCode, listPublic, bookOffer } from "@/lib/booking.functions";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Logo } from "@/components/Logo";
-import { LangSwitcher } from "@/components/LangSwitcher";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,7 +14,7 @@ import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { InstallPWA } from "@/components/InstallPWA";
+
 import { Carousel } from "@/components/Carousel";
 
 export const Route = createFileRoute("/book")({ component: BookPage });
@@ -142,7 +141,7 @@ function BookPage() {
   if (!clientInfo) {
     return (
       <div className="client-entry-shell min-h-screen bg-rose-gradient">
-        <NewClientHeader />
+        <SiteHeader />
         <main className="mx-auto max-w-md px-4 py-8">
           <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
             <CardContent className="grid gap-4 p-6">
@@ -158,7 +157,7 @@ function BookPage() {
   if (confirmation) {
     return (
       <div className="client-entry-shell min-h-screen bg-rose-gradient">
-        <NewClientHeader />
+        <SiteHeader />
         <main className="mx-auto max-w-md px-4 py-8">
           <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl bg-card p-8 shadow-soft text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
@@ -192,7 +191,7 @@ function BookPage() {
 
   return (
     <div className="client-entry-shell min-h-screen bg-rose-gradient">
-      <NewClientHeader />
+      <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-6">
         <div className="mb-2 text-sm text-muted-foreground">{t("client.welcome")}, <span className="font-semibold text-primary">{clientInfo.fullName}</span></div>
 
@@ -398,26 +397,6 @@ function BookPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
-}
-
-function NewClientHeader() {
-  const { t, i18n } = useTranslation();
-  const isRtl = i18n.language === "ar";
-  return (
-    <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-      <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
-        <Logo size={48} />
-        <div className={isRtl ? "text-right" : "text-left"}>
-          <div className="font-display text-lg text-primary">{t("brand.name")}</div>
-          <div className="text-[10px] text-muted-foreground">{t("brand.tagline")}</div>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <InstallPWA variant="client" />
-        <LangSwitcher />
-      </div>
-    </header>
   );
 }
 

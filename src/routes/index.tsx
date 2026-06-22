@@ -4,14 +4,12 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useServerFn } from "@tanstack/react-start";
 import { loginByCode } from "@/lib/booking.functions";
-import { Logo } from "@/components/Logo";
-import { LangSwitcher } from "@/components/LangSwitcher";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { InstallPWA } from "@/components/InstallPWA";
 import clientHeroBg from "@/assets/1780530860090.png";
 
 export const Route = createFileRoute("/")({ component: HomePage });
@@ -69,20 +67,7 @@ function HomePage() {
   return (
     <div className="client-entry-shell relative min-h-screen overflow-hidden bg-rose-gradient">
       <div className="pointer-events-none absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat opacity-60 md:opacity-70" style={{ backgroundImage: `url(${clientHeroBg})`, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat" }} />
-      <header className="relative z-30 mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <div className={`flex items-center gap-3 ${isRtl ? "flex-row-reverse" : ""}`}>
-          <Logo size={56} />
-          <div className={isRtl ? "text-right" : "text-left"}>
-            <div className="font-display text-xl font-semibold text-primary">{t("brand.name")}</div>
-            <div className="text-xs text-muted-foreground">{t("brand.tagline")}</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <InstallPWA variant="client" />
-          <LangSwitcher />
-          <Link to="/admin/login"><Button variant="ghost" size="sm" className="gap-1"><ShieldCheck className="h-4 w-4" />{t("admin.login")}</Button></Link>
-        </div>
-      </header>
+      <SiteHeader variant="client" />
 
       <AnimatePresence>
         {stage === "bloom" && (

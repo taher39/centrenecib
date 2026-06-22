@@ -3,8 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Logo } from "@/components/Logo";
-import { LangSwitcher } from "@/components/LangSwitcher";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,13 +30,7 @@ function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-rose-gradient">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link to="/" className="flex items-center gap-3">
-          <Logo size={48} />
-          <span className="font-display text-lg text-primary">{t("brand.name")}</span>
-        </Link>
-        <LangSwitcher />
-      </header>
+      <SiteHeader variant="admin" />
       <main className="mx-auto flex max-w-md flex-col items-center px-4 pt-16">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="w-full rounded-2xl bg-card p-8 shadow-soft">
           <h1 className="font-display text-2xl font-semibold text-primary">{t("admin.login")}</h1>
