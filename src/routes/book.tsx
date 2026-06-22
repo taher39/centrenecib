@@ -14,6 +14,7 @@ import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { QRCode } from "@/components/QRCode";
 
 import { Carousel } from "@/components/Carousel";
 
@@ -142,7 +143,17 @@ function BookPage() {
     return (
       <div className="client-entry-shell min-h-screen bg-rose-gradient">
         <SiteHeader />
-        <main className="mx-auto max-w-md px-4 py-8">
+        <main className="mx-auto max-w-md px-4 py-8 relative">
+          <div className="absolute -right-1 top-4 z-10 md:right-0">
+            <div className="group relative">
+              <QRCode url="https://centrenecib-three.vercel.app/" size={48} className="rounded-lg border border-border/50 bg-white/90 p-0.5 shadow-sm cursor-pointer transition hover:shadow-md" />
+              <div className="absolute right-0 top-full mt-2 hidden group-hover:block">
+                <div className="rounded-xl border bg-card p-2 shadow-lg">
+                  <QRCode url="https://centrenecib-three.vercel.app/" size={120} />
+                </div>
+              </div>
+            </div>
+          </div>
           <Card className="rounded-2xl border-white/50 bg-card/82 shadow-soft backdrop-blur-sm">
             <CardContent className="grid gap-4 p-6">
               <h2 className="font-display text-2xl text-primary">{t("client.newClient")}</h2>

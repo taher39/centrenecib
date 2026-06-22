@@ -1,7 +1,7 @@
 export default {
   brand: { name: "CENTRE NECIB", tagline: "Esthétique & soins corporels", exclusive: "" },
   nav: { home: "Accueil", appointments: "Rendez-vous", clients: "Clients", services: "Soins", invoices: "Factures", finance: "Comptabilité", offers: "Offres", gallery: "Galerie", staff: "Secrétaires", activity: "Journal d'activité", settings: "Paramètres", logout: "Déconnexion", products: "Produits", attendance: "Présence", reports: "Rapports médicaux" },
-  common: { save: "Enregistrer", cancel: "Annuler", confirm: "Confirmer", delete: "Supprimer", edit: "Modifier", add: "Ajouter", search: "Rechercher", loading: "Chargement…", today: "Aujourd'hui", tomorrow: "Demain", currency: "DA", back: "Retour", actions: "Actions", date: "Date", time: "Heure", price: "Prix", duration: "Durée", minutes: "min", name: "Nom", phone: "Téléphone", age: "Âge", address: "Adresse", gender: "Genre", male: "Homme", female: "Femme", notes: "Notes", total: "Total", required: "Champ requis",     install: "Installer l'app", language: "Langue", create: "Créer", close: "Fermer", print: "Imprimer", previous: "Précédent", next: "Suivant", page: "Page" },
+  common: { save: "Enregistrer", cancel: "Annuler", confirm: "Confirmer", delete: "Supprimer", edit: "Modifier", add: "Ajouter", search: "Rechercher", loading: "Chargement…", today: "Aujourd'hui", tomorrow: "Demain", currency: "DA", back: "Retour", actions: "Actions", date: "Date", time: "Heure", price: "Prix", duration: "Durée", minutes: "min", name: "Nom", phone: "Téléphone", age: "Âge", address: "Adresse", gender: "Genre", male: "Homme", female: "Femme", notes: "Notes", total: "Total", required: "Champ requis",     install: "Installer l'app", language: "Langue", create: "Créer", close: "Fermer", print: "Imprimer",     previous: "Précédent", next: "Suivant", page: "Page", download: "Télécharger" },
   client: {
     welcome: "Bienvenue",
     loginTitle: "Entrez dans l'univers de la beauté",
@@ -92,6 +92,7 @@ export default {
     genderMale: "Hommes uniquement",
     genderFemale: "Femmes uniquement",
     genderBoth: "Les deux",
+    myQrCode: "Mon QR Code",
   },
   invoice: {
     title: "FACTURE", number: "N°", date: "Date", client: "Cliente",

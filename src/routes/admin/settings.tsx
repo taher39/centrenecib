@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { QRCode, useQRCodeUrl } from "@/components/QRCode";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { QrCode as QrIcon, Download } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({ component: SettingsPage });
 
@@ -23,6 +26,9 @@ function SettingsPage() {
   const q = useQuery({ queryKey: ["settings"], queryFn: () => getFn() });
   const [form, setForm] = useState<S>({ name: "CENTRE NECIB", address: "", phone: "", email: "", nif: "", nis: "", rc: "", article: "", ai: "" });
   const [cred, setCred] = useState({ newDisplayName: "", newUsername: "", newPassword: "" });
+  const [qrOpen, setQrOpen] = useState(false);
+  const qrUrl = "https://centrenecib-three.vercel.app/";
+  const qrDataUrl = useQRCodeUrl(qrUrl);
 
   useEffect(() => {
     if (q.data?.settings) {
@@ -83,6 +89,45 @@ function SettingsPage() {
           <Button onClick={updateCred} className="justify-self-end">{t("common.save")}</Button>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader><CardTitle>{t("admin.myQrCode") || "الكيو ار كود الخاص بي"}</CardTitle></CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => setQrOpen(true)}>
+            <QrIcon className="h-4 w-4 me-2" />
+            {t("admin.myQrCode") || "الكيو ار كود الخاص بي"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrIcon className="h-5 w-5 text-primary" />
+              {t("admin.myQrCode") || "الكيو ار كود الخاص بي"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            <QRCode url={qrUrl} size={220} className="rounded-xl border p-1" />
+            <p className="text-xs text-muted-foreground text-center max-w-xs break-all">{qrUrl}</p>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                const a = document.createElement("a");
+                a.href = qrDataUrl;
+                a.download = "centrenecib-qr.png";
+                a.click();
+              }}
+              disabled={!qrDataUrl}
+            >
+              <Download className="h-4 w-4 me-2" />
+              {t("common.download") || "تحميل"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

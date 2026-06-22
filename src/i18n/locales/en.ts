@@ -1,7 +1,7 @@
 export default {
   brand: { name: "CENTRE NECIB", tagline: "Aesthetic care & body wellness", exclusive: "" },
   nav: { home: "Home", appointments: "Appointments", clients: "Clients", services: "Services", invoices: "Invoices", finance: "Finance", offers: "Offers", gallery: "Gallery", staff: "Staff", activity: "Activity log", settings: "Settings", logout: "Sign out", products: "Products", attendance: "Attendance", reports: "Medical reports" },
-  common: { save: "Save", cancel: "Cancel", confirm: "Confirm", delete: "Delete", edit: "Edit", add: "Add", search: "Search", loading: "Loading…", today: "Today", tomorrow: "Tomorrow", currency: "DZD", back: "Back", actions: "Actions", date: "Date", time: "Time", price: "Price", duration: "Duration", minutes: "min", name: "Name", phone: "Phone", age: "Age", address: "Address", gender: "Gender", male: "Male", female: "Female", notes: "Notes", total: "Total", required: "Required field",     install: "Install app", language: "Language", create: "Create", close: "Close", print: "Print", previous: "Previous", next: "Next", page: "Page" },
+  common: { save: "Save", cancel: "Cancel", confirm: "Confirm", delete: "Delete", edit: "Edit", add: "Add", search: "Search", loading: "Loading…", today: "Today", tomorrow: "Tomorrow", currency: "DZD", back: "Back", actions: "Actions", date: "Date", time: "Time", price: "Price", duration: "Duration", minutes: "min", name: "Name", phone: "Phone", age: "Age", address: "Address", gender: "Gender", male: "Male", female: "Female", notes: "Notes", total: "Total", required: "Required field",     install: "Install app", language: "Language", create: "Create", close: "Close", print: "Print",     previous: "Previous", next: "Next", page: "Page", download: "Download" },
   client: {
     welcome: "Welcome",
     loginTitle: "Step into the world of beauty",
@@ -92,6 +92,7 @@ export default {
     genderMale: "Men only",
     genderFemale: "Women only",
     genderBoth: "Both",
+    myQrCode: "My QR Code",
   },
   invoice: {
     title: "INVOICE", number: "N°", date: "Date", client: "Client",
