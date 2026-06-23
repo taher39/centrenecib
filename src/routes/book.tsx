@@ -36,6 +36,7 @@ function BookPage() {
   const [dates, setDates] = useState<Record<string, string[]>>({});
   const [datePicker, setDatePicker] = useState<{ serviceId: string; name: string; days: number[] } | null>(null);
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
+  const [bookingResult, setBookingResult] = useState<{ code: string | null; isNew: boolean } | null>(null);
 
   // Restore client from localStorage
   useEffect(() => {
@@ -125,12 +126,7 @@ function BookPage() {
     onSuccess: (res) => {
       if (res.code) localStorage.setItem("nassib_code", res.code);
       localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
-      if (res.code) {
-        toast.success(t("client.bookSuccess", { code: res.code }));
-      } else {
-        toast.success(t("client.confirmed"));
-      }
-      navigate({ to: "/me" });
+      setBookingResult({ code: res.code, isNew: res.isNew });
     },
     onError: (e: Error) => {
       const m = e.message;
@@ -243,6 +239,32 @@ function BookPage() {
 
       </main>
 
+      {/* Confirmation dialog with code */}
+      <Dialog open={!!bookingResult} onOpenChange={(o) => { if (!o) { setBookingResult(null); setSelected(new Set()); setDates({}); } }}>
+        <DialogContent className="max-w-sm rounded-2xl border p-6 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
+            <Check className="h-8 w-8 text-primary" />
+          </div>
+          <DialogTitle className="font-display text-xl text-primary">{t("client.confirmed")}</DialogTitle>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {bookingResult?.isNew ? t("client.yourCode") : t("client.confirmed")}
+          </p>
+          {bookingResult?.code && (
+            <div className="mt-5 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
+              <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("client.yourCode")}</div>
+              <div className="mt-1 font-mono text-3xl font-bold tracking-[0.2em] text-primary">{bookingResult.code}</div>
+            </div>
+          )}
+          <p className="mt-3 text-xs text-muted-foreground">{t("client.saveCode")}</p>
+          <Button
+            onClick={() => { setBookingResult(null); setSelected(new Set()); setDates({}); navigate({ to: "/me" }); }}
+            className="mt-5 h-12 w-full rounded-xl text-base"
+          >
+            {t("common.save")} — {t("client.yourAppointments")}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {/* Glass date picker – full screen on mobile, centered on desktop */}
       <Dialog open={!!datePicker} onOpenChange={(o) => { if (!o) { setDatePicker(null); if (datePicker && (dates[datePicker.serviceId]?.length ?? 0) === 0) { setSelected((s) => { const n = new Set(s); n.delete(datePicker.serviceId); return n; }); } } }}>
         <DialogContent className="glass-panel flex max-h-[90dvh] flex-col border-none p-0 sm:max-w-lg sm:rounded-2xl sm:border sm:p-0">
@@ -350,12 +372,7 @@ function BookPage() {
                   if (res.code) localStorage.setItem("nassib_code", res.code);
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
                   setOfferModal(null);
-                  if (res.code) {
-                    toast.success(t("client.bookSuccess", { code: res.code }));
-                  } else {
-                    toast.success(t("client.confirmed"));
-                  }
-                  navigate({ to: "/me" });
+                  setBookingResult({ code: res.code, isNew: res.isNew });
                 } catch (e) {
                   const m = (e as Error).message;
                   if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
