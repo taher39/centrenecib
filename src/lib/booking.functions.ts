@@ -42,6 +42,7 @@ export const loginByCode = createServerFn({ method: "POST" })
   });
 
 // Smart booking: pick first slot of capacity for each requested service on the chosen date
+// Also handles product selection for the client booking flow
 async function findSlot(sb: ReturnType<typeof admin>, serviceId: string, date: string) {
   const { data: svc } = await sb.from("services").select("*").eq("id", serviceId).single();
   if (!svc) throw new Error("Service introuvable");
@@ -83,7 +84,7 @@ async function findSlot(sb: ReturnType<typeof admin>, serviceId: string, date: s
   throw new Error(`${svc.name}: aucun créneau disponible`);
 }
 
-// Book: create client if new, schedule each chosen service
+// Book: create client if new, schedule each chosen service, add products
 export const book = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
@@ -103,6 +104,11 @@ export const book = createServerFn({ method: "POST" })
           )
           .min(1)
           .max(10),
+        products: z.array(z.object({
+          productId: z.string().uuid(),
+          quantity: z.number().int().min(1),
+          unitPrice: z.number().min(0),
+        })).optional(),
       })
       .parse(d)
   )
@@ -158,6 +164,20 @@ export const book = createServerFn({ method: "POST" })
       });
       if (insertErr) throw new Error(insertErr.message);
       created.push({ serviceName: slot.service.name, time: slot.time, date: b.date });
+    }
+
+    // Add products to the first appointment of the group
+    if (data.products && data.products.length > 0) {
+      const firstAppt = created.length > 0 ? await sb.from("appointments").select("id").eq("group_id", groupId).limit(1).maybeSingle() : null;
+      if (firstAppt?.data?.id) {
+        const apInserts = data.products.map((p) => ({
+          appointment_id: firstAppt.data!.id,
+          product_id: p.productId,
+          quantity: p.quantity,
+          unit_price: p.unitPrice,
+        }));
+        await sb.from("appointment_products").insert(apInserts);
+      }
     }
 
     return { clientId, code, isNew, appointments: created };
@@ -279,3 +299,10 @@ export const bookOffer = createServerFn({ method: "POST" })
 
     return { clientId, code, isNew, offerTitle: offer.title, date: data.date };
   });
+
+// Public: list active products with images for booking page
+export const listPublicProducts = createServerFn({ method: "GET" }).handler(async () => {
+  const sb = admin();
+  const { data } = await sb.from("products").select("*").eq("active", true).order("name");
+  return { items: data ?? [] };
+});

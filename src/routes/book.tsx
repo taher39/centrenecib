@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listServices, book, loginByCode, listPublic, bookOffer } from "@/lib/booking.functions";
+import { listServices, book, loginByCode, listPublic, bookOffer, listPublicProducts } from "@/lib/booking.functions";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Check, Clock, Calendar as CalendarIcon, Package } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
@@ -38,6 +38,7 @@ function BookPage() {
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
   const [bookingResult, setBookingResult] = useState<{ code: string | null; isNew: boolean } | null>(null);
   const [checking, setChecking] = useState(true);
+  const [cartProducts, setCartProducts] = useState<{ productId: string; name: string; price: number; quantity: number; image_url: string | null }[]>([]);
 
   // Restore client from localStorage
   useEffect(() => {
@@ -79,6 +80,9 @@ function BookPage() {
   const pubQuery = useQuery({ queryKey: ["public-feed"], queryFn: () => fetchPublic() });
   const offers = pubQuery.data?.offers ?? [];
   const gallery = pubQuery.data?.gallery ?? [];
+  const fetchProducts = useServerFn(listPublicProducts);
+  const prodQuery = useQuery({ queryKey: ["products-public"], queryFn: () => fetchProducts() });
+  const products = prodQuery.data?.items ?? [];
 
   // Generate next 21 days, then filter per service by available_days
   const next21 = useMemo(() => {
@@ -120,10 +124,13 @@ function BookPage() {
         if (list.length === 0) throw new Error(t("client.pickDateForEach"));
         for (const d of list) bookings.push({ serviceId: sid, date: d });
       }
-      const payload = clientInfo?.id
+      const payload: Record<string, unknown> = clientInfo?.id
         ? { clientId: clientInfo.id, bookings }
         : { fullName: clientInfo!.fullName!, age: clientInfo!.age, phone: clientInfo!.phone!, address: clientInfo!.address!, gender: clientInfo!.gender!, bookings };
-      return bookFn({ data: payload });
+      if (cartProducts.length > 0) {
+        payload.products = cartProducts.map((p) => ({ productId: p.productId, quantity: p.quantity, unitPrice: p.price }));
+      }
+      return bookFn({ data: payload as never });
     },
     onSuccess: (res) => {
       if (res.code) localStorage.setItem("nassib_code", res.code);
@@ -207,6 +214,92 @@ function BookPage() {
           </div>
         )}
 
+        {products.length > 0 && (
+          <div className="mt-6 mb-2">
+            <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 via-primary/[0.02] to-transparent p-5">
+              <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/10 blur-2xl" />
+              <div className="relative">
+                <p className="font-display text-lg text-primary">
+                  {isAr ? "✨ أكمل تجربتك — أضف منتجات لجلساتك" : "✨ Complétez votre expérience — ajoutez des produits à vos soins"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {isAr ? "منتجات مختارة بعناية لتعزيز نتائج علاجك" : "Des produits soigneusement sélectionnés pour optimiser vos résultats"}
+                </p>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {products.map((p) => {
+                  const inCart = cartProducts.find((cp) => cp.productId === p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => {
+                        if (inCart) {
+                          setCartProducts((prev) => prev.filter((cp) => cp.productId !== p.id));
+                        } else {
+                          setCartProducts((prev) => [...prev, { productId: p.id, name: p.name, price: Number(p.price), quantity: 1, image_url: p.image_url ?? null }]);
+                        }
+                      }}
+                      className={`group relative flex flex-col items-center rounded-xl border-2 p-3 text-center transition-all active:scale-95 ${
+                        inCart
+                          ? "border-primary bg-primary/10 shadow-sm"
+                          : "border-white/20 bg-white/5 hover:border-primary/30 hover:bg-white/10"
+                      }`}
+                    >
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="h-16 w-16 rounded-lg object-cover" />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                          <Package className="h-6 w-6" />
+                        </div>
+                      )}
+                      <div className="mt-2 text-xs font-semibold leading-tight">{p.name}</div>
+                      <div className="mt-0.5 text-[11px] font-bold text-destructive">{Number(p.price).toLocaleString()} {t("common.currency")}</div>
+                      {inCart && (
+                        <>
+                          <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                            <Check className="h-3 w-3 text-primary-foreground" />
+                          </div>
+                          <div className="mt-2 flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCartProducts((prev) =>
+                                  prev.map((cp) => cp.productId === p.id ? { ...cp, quantity: Math.max(1, cp.quantity - 1) } : cp)
+                                );
+                              }}
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-xs font-bold"
+                            >−</button>
+                            <span className="min-w-[1.2rem] text-xs font-bold">{inCart.quantity}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCartProducts((prev) =>
+                                  prev.map((cp) => cp.productId === p.id ? { ...cp, quantity: cp.quantity + 1 } : cp)
+                                );
+                              }}
+                              className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary text-xs font-bold"
+                            >+</button>
+                          </div>
+                        </>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {cartProducts.length > 0 && (
+                <div className="mt-3 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/[0.03] px-3 py-2">
+                  <span className="text-xs text-muted-foreground">
+                    {isAr ? `${cartProducts.length} منتج` : `${cartProducts.length} produit(s)`}
+                  </span>
+                  <span className="text-sm font-bold text-primary">
+                    +{cartProducts.reduce((s, cp) => s + cp.price * cp.quantity, 0).toLocaleString()} {t("common.currency")}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <h2 className="font-display text-2xl text-primary">{t("client.chooseServices")}</h2>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -261,7 +354,7 @@ function BookPage() {
       </main>
 
       {/* Confirmation dialog with code */}
-      <Dialog open={!!bookingResult} onOpenChange={(o) => { if (!o) { setBookingResult(null); setSelected(new Set()); setDates({}); } }}>
+      <Dialog open={!!bookingResult} onOpenChange={(o) => { if (!o) { setBookingResult(null); setSelected(new Set()); setDates({}); setCartProducts([]); } }}>
         <DialogContent className="max-w-sm rounded-2xl border p-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
             <Check className="h-8 w-8 text-primary" />
@@ -278,7 +371,7 @@ function BookPage() {
           )}
           <p className="mt-3 text-xs text-muted-foreground">{t("client.saveCode")}</p>
           <Button
-            onClick={() => { setBookingResult(null); setSelected(new Set()); setDates({}); navigate({ to: "/me" }); }}
+            onClick={() => { setBookingResult(null); setSelected(new Set()); setDates({}); setCartProducts([]); navigate({ to: "/me" }); }}
             className="mt-5 h-12 w-full rounded-xl text-base"
           >
             {t("common.save")} — {t("client.yourAppointments")}

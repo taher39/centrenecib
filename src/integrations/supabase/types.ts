@@ -559,6 +559,7 @@ export type Database = {
           active: boolean
           created_at: string
           id: string
+          image_url: string | null
           name: string
           price: number
           stock: number | null
@@ -568,6 +569,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          image_url?: string | null
           name: string
           price?: number
           stock?: number | null
@@ -577,12 +579,55 @@ export type Database = {
           active?: boolean
           created_at?: string
           id?: string
+          image_url?: string | null
           name?: string
           price?: number
           stock?: number | null
           updated_at?: string
         }
         Relationships: []
+      }
+      appointment_products: {
+        Row: {
+          id: string
+          appointment_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          appointment_id: string
+          product_id: string
+          quantity?: number
+          unit_price: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          appointment_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_products_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {

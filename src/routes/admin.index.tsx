@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { 
   adminAppointments, setAppointmentStatus, markAppointmentRead, deleteAppointment,
   adminListClients, adminListServices, adminCreateAppointment, adminCreateClient,
-  adminListPresentToday
+  adminListPresentToday, adminListProducts
 } from "@/lib/admin.functions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "react-i18next";
 import { useMemo, useState } from "react";
-import { Trash2, Bell, Plus, Calendar as CalendarIcon, User, Search, UserCheck } from "lucide-react";
+import { Trash2, Bell, Plus, Calendar as CalendarIcon, User, Search, UserCheck, Package, X } from "lucide-react";
 import { toast } from "sonner";
 import { usePerms } from "@/hooks/use-perms";
 import { Pagination } from "@/components/Pagination";
@@ -256,15 +256,18 @@ function ManualBookingDialog({ open, onOpenChange }: { open: boolean, onOpenChan
   const listClients = useServerFn(adminListClients);
   const listServices = useServerFn(adminListServices);
   const createFn = useServerFn(adminCreateAppointment);
+  const listProducts = useServerFn(adminListProducts);
 
   const clientsQ = useQuery({ queryKey: ["clients"], queryFn: () => listClients(), enabled: open });
   const servicesQ = useQuery({ queryKey: ["svc"], queryFn: () => listServices(), enabled: open });
+  const productsQ = useQuery({ queryKey: ["products"], queryFn: () => listProducts(), enabled: open });
 
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [time, setTime] = useState("09:00");
+  const [selectedProducts, setSelectedProducts] = useState<{ productId: string; name: string; price: number; quantity: number }[]>([]);
   const [busy, setBusy] = useState(false);
 
   const filteredClients = useMemo(() => {
@@ -274,16 +277,40 @@ function ManualBookingDialog({ open, onOpenChange }: { open: boolean, onOpenChan
     return items.filter(c => c.full_name.toLowerCase().includes(s) || c.phone.includes(s) || c.code.toLowerCase().includes(s)).slice(0, 5);
   }, [clientsQ.data?.items, search]);
 
+  const availableProducts = (productsQ.data?.items ?? []).filter(p => p.active !== false && (p.stock === null || p.stock > 0));
+
+  const toggleProduct = (p: { id: string; name: string; price: number }) => {
+    setSelectedProducts((prev) => {
+      const existing = prev.find((sp) => sp.productId === p.id);
+      if (existing) {
+        return prev.filter((sp) => sp.productId !== p.id);
+      }
+      return [...prev, { productId: p.id, name: p.name, price: Number(p.price), quantity: 1 }];
+    });
+  };
+
+  const updateProductQty = (productId: string, quantity: number) => {
+    setSelectedProducts((prev) =>
+      prev.map((sp) => (sp.productId === productId ? { ...sp, quantity: Math.max(1, quantity) } : sp))
+    );
+  };
+
   const onConfirm = async () => {
     if (!selectedClient || !selectedService) return;
     setBusy(true);
     try {
-      await createFn({ data: { clientId: selectedClient, serviceId: selectedService, date, time } });
+      const productsPayload = selectedProducts.map((sp) => ({
+        productId: sp.productId,
+        quantity: sp.quantity,
+        unitPrice: sp.price,
+      }));
+      await createFn({ data: { clientId: selectedClient, serviceId: selectedService, date, time, products: productsPayload.length > 0 ? productsPayload : undefined } });
       toast.success("✓");
       onOpenChange(false);
       qc.invalidateQueries({ queryKey: ["appts"] });
       setSelectedClient(null);
       setSelectedService(null);
+      setSelectedProducts([]);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -291,9 +318,11 @@ function ManualBookingDialog({ open, onOpenChange }: { open: boolean, onOpenChan
     }
   };
 
+  const productTotal = selectedProducts.reduce((sum, sp) => sum + sp.price * sp.quantity, 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto">
         <DialogHeader><DialogTitle>{t("admin.createAppointment")}</DialogTitle></DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
@@ -344,8 +373,63 @@ function ManualBookingDialog({ open, onOpenChange }: { open: boolean, onOpenChan
               <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
           </div>
+
+          {availableProducts.length > 0 && (
+            <div className="grid gap-2">
+              <Label className="flex items-center gap-2">{t("admin.addProduct")} <span className="text-xs text-muted-foreground">(optionnel)</span></Label>
+              <div className="grid grid-cols-2 gap-2">
+                {availableProducts.slice(0, 6).map((p) => {
+                  const sel = selectedProducts.some((sp) => sp.productId === p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => toggleProduct(p as { id: string; name: string; price: number })}
+                      className={`flex items-center gap-2 rounded-xl border p-2 text-start transition ${
+                        sel ? "border-primary bg-primary/10" : "border-border hover:bg-secondary/40"
+                      }`}
+                    >
+                      {(p as unknown as { image_url?: string | null }).image_url ? (
+                        <img src={(p as unknown as { image_url: string }).image_url} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Package className="h-4 w-4" /></div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold truncate">{p.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{Number(p.price).toLocaleString()} dج</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedProducts.length > 0 && (
+                <div className="rounded-xl border bg-secondary/20 p-2">
+                  {selectedProducts.map((sp) => (
+                    <div key={sp.productId} className="flex items-center justify-between gap-2 py-1">
+                      <span className="text-xs font-medium truncate">{sp.name}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <select
+                          value={sp.quantity}
+                          onChange={(e) => updateProductQty(sp.productId, Number(e.target.value))}
+                          className="h-7 w-14 rounded-lg border bg-background px-1 text-xs"
+                        >
+                          {[1, 2, 3, 4, 5].map((q) => (
+                            <option key={q} value={q}>{q}</option>
+                          ))}
+                        </select>
+                        <span className="text-xs text-muted-foreground">{(sp.price * sp.quantity).toLocaleString()} دج</span>
+                        <button onClick={() => setSelectedProducts((prev) => prev.filter((x) => x.productId !== sp.productId))} className="text-destructive hover:text-destructive/70">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-col gap-2 sm:flex-row">
+          {productTotal > 0 && <div className="text-xs text-muted-foreground sm:me-auto">+ {productTotal.toLocaleString()} dج produits</div>}
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
           <Button onClick={onConfirm} disabled={!selectedClient || !selectedService || busy}>
             {busy ? t("common.loading") : t("common.confirm")}

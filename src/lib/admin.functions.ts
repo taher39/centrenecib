@@ -191,6 +191,31 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
           unit_price: price,
           total: price,
         });
+        // Add products from appointment_products to invoice
+        const { data: apptProducts } = await sb
+          .from("appointment_products")
+          .select("*, products(name, price)")
+          .eq("appointment_id", data.id);
+        if (apptProducts && apptProducts.length > 0) {
+          const productTotal = apptProducts.reduce((sum, ap) => sum + Number(ap.unit_price) * ap.quantity, 0);
+          await sb.from("invoices").update({
+            subtotal: price + productTotal,
+            total: price + productTotal,
+          }).eq("id", inv.id);
+          for (const ap of apptProducts) {
+            const productName = (ap.products as unknown as { name?: string })?.name ?? "Produit";
+            await sb.from("invoice_items").insert({
+              invoice_id: inv.id,
+              product_id: ap.product_id,
+              service_name: productName,
+              quantity: ap.quantity,
+              unit_price: ap.unit_price,
+              total: ap.unit_price * ap.quantity,
+            });
+            // Deduct stock
+            await sb.rpc("decrement_product_stock", { p_product_id: ap.product_id, p_quantity: ap.quantity });
+          }
+        }
       }
 
       // Auto-create medical report if one doesn't exist
@@ -204,6 +229,19 @@ export const setAppointmentStatus = createServerFn({ method: "POST" })
           client_id: appt.client_id,
           description: svcName,
         });
+      }
+    }
+
+    // Restore stock on cancellation
+    if (data.status === "cancelled" && appt) {
+      const { data: apptProducts } = await sb
+        .from("appointment_products")
+        .select("product_id, quantity")
+        .eq("appointment_id", data.id);
+      if (apptProducts && apptProducts.length > 0) {
+        for (const ap of apptProducts) {
+          await sb.rpc("increment_product_stock", { p_product_id: ap.product_id, p_quantity: ap.quantity });
+        }
       }
     }
     await logActivity(context.userId, null, `appointment_${data.status}`, "appointment", data.id);
@@ -446,7 +484,7 @@ export const uploadAdminImage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        bucket: z.enum(["gallery", "offers"]),
+        bucket: z.enum(["gallery", "offers", "products"]),
         fileName: z.string().min(1).max(200),
         mimeType: z.string().min(1).max(120),
         dataUrl: z.string().min(32).max(12_000_000),
@@ -839,6 +877,7 @@ const productSchema = z.object({
   name: z.string().min(1).max(120),
   price: z.number().min(0),
   stock: z.number().int().optional().nullable(),
+  image_url: z.string().url().optional().nullable(),
   active: z.boolean().optional(),
 });
 
@@ -1000,6 +1039,51 @@ export const deleteReportNote = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// ===== Appointment Products =====
+export const listAppointmentProducts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { appointmentId: string }) => z.object({ appointmentId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = admin();
+    const { data: items } = await sb
+      .from("appointment_products")
+      .select("*, products(id, name, price, image_url)")
+      .eq("appointment_id", data.appointmentId);
+    return { items: items ?? [] };
+  });
+
+export const setAppointmentProducts = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      appointmentId: z.string().uuid(),
+      products: z.array(z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().int().min(1),
+        unitPrice: z.number().min(0),
+      })),
+    }).parse(d)
+  )
+  .handler(async ({ data, context }) => {
+    await requirePerm(context.userId, "appointments", "edit");
+    const sb = admin();
+    // Replace all products for this appointment
+    const { error: delError } = await sb.from("appointment_products").delete().eq("appointment_id", data.appointmentId);
+    if (delError) throw new Error(delError.message);
+    if (data.products.length > 0) {
+      const inserts = data.products.map((p) => ({
+        appointment_id: data.appointmentId,
+        product_id: p.productId,
+        quantity: p.quantity,
+        unit_price: p.unitPrice,
+      }));
+      const { error: insError } = await sb.from("appointment_products").insert(inserts);
+      if (insError) throw new Error(insError.message);
+    }
+    await logActivity(context.userId, null, "update_products", "appointment", data.appointmentId);
+    return { ok: true };
+  });
+
 // ===== Manual Booking =====
 export const adminCreateAppointment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -1011,6 +1095,11 @@ export const adminCreateAppointment = createServerFn({ method: "POST" })
         date: z.string(),
         time: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
+        products: z.array(z.object({
+          productId: z.string().uuid(),
+          quantity: z.number().int().min(1),
+          unitPrice: z.number().min(0),
+        })).optional(),
       })
       .parse(d)
   )
@@ -1032,6 +1121,19 @@ export const adminCreateAppointment = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) throw new Error(error.message);
+
+    // Add products if provided
+    if (data.products && data.products.length > 0) {
+      const apInserts = data.products.map((p) => ({
+        appointment_id: appt.id,
+        product_id: p.productId,
+        quantity: p.quantity,
+        unit_price: p.unitPrice,
+      }));
+      const { error: apError } = await sb.from("appointment_products").insert(apInserts);
+      if (apError) throw new Error(apError.message);
+    }
+
     await logActivity(context.userId, null, "create_manual", "appointment", appt.id);
     return { ok: true };
   });
