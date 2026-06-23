@@ -284,80 +284,56 @@ function BookPage() {
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-5 pb-2">
             {datePicker && (() => {
-              const filtered = next21.filter((d) => datePicker.days.includes(d.dow));
-              const weeks = [];
-              for (let i = 0; i < filtered.length; i += 7) {
-                weeks.push(filtered.slice(i, i + 7));
-              }
+              const months = isAr
+                ? ["جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان", "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+                : ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+              const available = next21.filter((d) => datePicker.days.includes(d.dow));
               return (
-                <div className="grid gap-4">
-                  {weeks.map((week, wi) => (
-                    <div key={wi}>
-                      <div className="grid grid-cols-7 gap-1.5">
-                        {week.map((d) => {
-                          const list = dates[datePicker.serviceId] ?? [];
-                          const sel = list.includes(d.value);
-                          return (
-                            <button
-                              key={d.value}
-                              type="button"
-                              onClick={() => setDates((prev) => {
-                                const cur = prev[datePicker.serviceId] ?? [];
-                                const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
-                                return { ...prev, [datePicker.serviceId]: next };
-                              })}
-                              className={`relative flex flex-col items-center rounded-xl border-2 py-2.5 text-center transition-all active:scale-90 ${
-                                sel
-                                  ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/30"
-                                  : "border-white/20 bg-white/5 text-foreground hover:border-primary/40 hover:bg-white/10"
-                              }`}
-                            >
-                              <span className={`text-[9px] font-semibold uppercase tracking-wider ${sel ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{d.dayLabelShort}</span>
-                              <span className={`text-base font-extrabold leading-tight ${sel ? "" : ""}`}>{d.fullDate.split("/")[0]}</span>
-                              <span className={`text-[9px] ${sel ? "text-primary-foreground/70" : "text-muted-foreground/60"}`}>{d.fullDate.split("/")[1]}</span>
-                              {sel && <div className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary-foreground"><Check className="h-2.5 w-2.5 text-primary" /></div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                  {weeks.length === 0 && <div className="py-10 text-center text-xs text-muted-foreground/50">—</div>}
-                </div>
-              );
-            })()}
-            {datePicker && (dates[datePicker.serviceId]?.length ?? 0) > 0 && (
-              <div className="mt-4 border-t border-white/10 pt-4">
-                <p className="text-xs text-muted-foreground/70 mb-2">{t("client.yourSelection") || "اختياراتك"}</p>
-                <div className="flex flex-wrap gap-2">
-                  {dates[datePicker.serviceId]!.slice().sort().map((val) => {
-                    const d = new Date(val + "T00:00:00");
-                    const dow = d.getDay();
+                <div className="grid gap-2 py-2">
+                  {available.map((d) => {
+                    const dt = new Date(d.value + "T00:00:00");
+                    const dow = dt.getDay();
                     const dayName = isAr ? DAYS_AR[dow] : DAYS_FR[dow];
-                    const months = isAr
-                      ? ["جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان", "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
-                      : ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
-                    const monthName = months[d.getMonth()];
+                    const monthName = months[dt.getMonth()];
+                    const sel = (dates[datePicker.serviceId] ?? []).includes(d.value);
                     return (
                       <button
-                        key={val}
-                        onClick={() => setDates((prev) => ({
-                          ...prev,
-                          [datePicker.serviceId]: (prev[datePicker.serviceId] ?? []).filter((x) => x !== val),
-                        }))}
-                        className="group flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary transition hover:bg-primary hover:text-primary-foreground"
+                        key={d.value}
+                        type="button"
+                        onClick={() => setDates((prev) => {
+                          const cur = prev[datePicker.serviceId] ?? [];
+                          const next = cur.includes(d.value) ? cur.filter((x) => x !== d.value) : [...cur, d.value];
+                          return { ...prev, [datePicker.serviceId]: next };
+                        })}
+                        className={`flex items-center justify-between rounded-xl border px-4 py-3 text-start transition-all active:scale-[0.98] ${
+                          sel
+                            ? "border-primary bg-primary/10 shadow-sm shadow-primary/20"
+                            : "border-white/20 bg-white/5 hover:border-primary/40 hover:bg-white/10"
+                        }`}
                       >
-                        <span className="font-semibold">{dayName}</span>
-                        <span className="font-bold">{d.getDate()}</span>
-                        <span>{monthName}</span>
-                        <span className="opacity-60">{d.getFullYear()}</span>
-                        <span className="ms-1 opacity-0 transition group-hover:opacity-100">✕</span>
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${
+                            sel ? "bg-primary text-primary-foreground" : "bg-white/10 text-foreground"
+                          }`}>
+                            {dt.getDate()}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-sm text-foreground">{dayName}</div>
+                            <div className="text-xs text-muted-foreground">{monthName} {dt.getFullYear()}</div>
+                          </div>
+                        </div>
+                        <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition ${
+                          sel ? "border-primary bg-primary text-primary-foreground" : "border-white/30"
+                        }`}>
+                          {sel && <Check className="h-3.5 w-3.5" />}
+                        </div>
                       </button>
                     );
                   })}
+                  {available.length === 0 && <div className="py-10 text-center text-xs text-muted-foreground/50">—</div>}
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
           <div className="sticky bottom-0 rounded-b-2xl border-t border-white/10 bg-black/5 px-5 py-3 backdrop-blur-xl">
             <div className="flex items-center justify-between">
