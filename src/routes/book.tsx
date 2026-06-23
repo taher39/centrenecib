@@ -37,38 +37,40 @@ function BookPage() {
   const [datePicker, setDatePicker] = useState<{ serviceId: string; name: string; days: number[] } | null>(null);
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
   const [bookingResult, setBookingResult] = useState<{ code: string | null; isNew: boolean } | null>(null);
+  const [checking, setChecking] = useState(true);
 
   // Restore client from localStorage
   useEffect(() => {
-    const saved = typeof window !== "undefined" ? localStorage.getItem("nassib_client") : null;
-    if (saved) {
+    (async () => {
       try {
-        const parsed = JSON.parse(saved) as { id: string; fullName: string };
-        const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
-        if (code) {
-          codeLoginFn({ data: { code } }).then((r) => {
+        const saved = typeof window !== "undefined" ? localStorage.getItem("nassib_client") : null;
+        if (saved) {
+          const parsed = JSON.parse(saved) as { id: string; fullName: string };
+          const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
+          if (code) {
+            const r = await codeLoginFn({ data: { code } });
             if (r.client) {
               setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone, address: r.client.address ?? undefined, gender: (r.client.gender as "male" | "female" | null) ?? undefined });
               localStorage.setItem("nassib_client", JSON.stringify({ id: r.client.id, fullName: r.client.full_name }));
             } else {
               setClientInfo({ id: parsed.id, fullName: parsed.fullName });
             }
-          }).catch(() => setClientInfo({ id: parsed.id, fullName: parsed.fullName }));
+          } else {
+            setClientInfo({ id: parsed.id, fullName: parsed.fullName });
+          }
         } else {
-          setClientInfo({ id: parsed.id, fullName: parsed.fullName });
+          const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
+          if (code) {
+            const r = await codeLoginFn({ data: { code } });
+            if (r.client) {
+              setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone, address: r.client.address ?? undefined, gender: (r.client.gender as "male" | "female" | null) ?? undefined });
+              localStorage.setItem("nassib_client", JSON.stringify({ id: r.client.id, fullName: r.client.full_name }));
+            }
+          }
         }
       } catch { /* noop */ }
-    } else {
-      const code = typeof window !== "undefined" ? localStorage.getItem("nassib_code") : null;
-      if (code) {
-        codeLoginFn({ data: { code } }).then((r) => {
-          if (r.client) {
-            setClientInfo({ id: r.client.id, fullName: r.client.full_name, age: r.client.age ?? undefined, phone: r.client.phone, address: r.client.address ?? undefined, gender: (r.client.gender as "male" | "female" | null) ?? undefined });
-            localStorage.setItem("nassib_client", JSON.stringify({ id: r.client.id, fullName: r.client.full_name }));
-          }
-        }).catch(() => undefined);
-      }
-    }
+      setChecking(false);
+    })();
   }, [codeLoginFn]);
 
   const svcQuery = useQuery({ queryKey: ["services-public"], queryFn: () => fetchServices() });
@@ -141,6 +143,20 @@ function BookPage() {
     },
   });
 
+
+  if (checking) {
+    return (
+      <div className="client-entry-shell min-h-screen bg-rose-gradient">
+        <SiteHeader />
+        <main className="mx-auto flex w-full max-w-lg items-center justify-center px-4 py-20">
+          <div className="text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+            <p className="mt-4 text-sm text-muted-foreground">{t("common.loading")}</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   if (!clientInfo) {
     return (
