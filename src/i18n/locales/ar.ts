@@ -27,6 +27,7 @@ export default {
     pickOfferDate: "اختر اليوم المناسب — سيتم تحديد الساعة من قبل الإدارة",
     timePending: "يحدد الوقت لاحقاً",
     days: "يوم", hours: "س", mins: "د", secs: "ث",
+    bookSuccess: "تم تأكيد طلبك ✅ رمزك: {{code}}",
   },
   admin: {
     login: "دخول الإدارة",

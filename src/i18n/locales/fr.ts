@@ -32,6 +32,7 @@ export default {
     femaleOnly: "Ce soin est réservé aux femmes uniquement.",
     daysSelected: "{{n}} jour(s) sélectionné(s)",
     doneSelect: "Terminer",
+    bookSuccess: "Réservation confirmée ✅ Votre code : {{code}}",
   },
   admin: {
     login: "Espace Admin",

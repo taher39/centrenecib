@@ -32,6 +32,7 @@ export default {
     femaleOnly: "This session is reserved for women only.",
     daysSelected: "{{n}} day(s) selected",
     doneSelect: "Done",
+    bookSuccess: "Booking confirmed ✅ Your code: {{code}}",
   },
   admin: {
     login: "Admin",

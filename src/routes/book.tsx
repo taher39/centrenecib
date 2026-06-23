@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Check, Clock, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import { Carousel } from "@/components/Carousel";
@@ -36,7 +35,6 @@ function BookPage() {
   // Per-service chosen dates (multiple)
   const [dates, setDates] = useState<Record<string, string[]>>({});
   const [datePicker, setDatePicker] = useState<{ serviceId: string; name: string; days: number[] } | null>(null);
-  const [confirmation, setConfirmation] = useState<{ code: string | null; isNew: boolean; appointments: { serviceName: string; time: string; date: string }[]; clientId: string } | null>(null);
   const [offerModal, setOfferModal] = useState<{ offerId: string; title: string; date: string } | null>(null);
 
   // Restore client from localStorage
@@ -127,7 +125,12 @@ function BookPage() {
     onSuccess: (res) => {
       if (res.code) localStorage.setItem("nassib_code", res.code);
       localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
-      setConfirmation({ code: res.code, isNew: res.isNew, appointments: res.appointments, clientId: res.clientId });
+      if (res.code) {
+        toast.success(t("client.bookSuccess", { code: res.code }));
+      } else {
+        toast.success(t("client.confirmed"));
+      }
+      navigate({ to: "/me" });
     },
     onError: (e: Error) => {
       const m = e.message;
@@ -149,41 +152,6 @@ function BookPage() {
               <NewClientForm onSubmit={(info) => setClientInfo(info)} />
             </CardContent>
           </Card>
-        </main>
-      </div>
-    );
-  }
-
-  if (confirmation) {
-    return (
-      <div className="client-entry-shell min-h-screen bg-rose-gradient">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-lg lg:max-w-xl px-4 py-8">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl bg-card p-6 sm:p-8 shadow-soft text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/15">
-              <Check className="h-8 w-8 text-primary" />
-            </div>
-            <h2 className="font-display text-2xl text-primary">{t("client.confirmed")}</h2>
-            <div className="mt-6 grid gap-3 text-start">
-              {confirmation.appointments.map((a, i) => (
-                <div key={i} className="rounded-xl border bg-secondary/40 p-3">
-                  <div className="font-semibold text-foreground">{a.serviceName}</div>
-                  <div className="text-sm text-muted-foreground"><CalendarIcon className="inline h-3 w-3 me-1" /> {a.date} · <Clock className="inline h-3 w-3 ms-2 me-1" /> {a.time}</div>
-                </div>
-              ))}
-            </div>
-            {confirmation.code && (
-              <div className="mt-6 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4">
-                <div className="text-xs uppercase tracking-wider text-muted-foreground">{t("client.yourCode")}</div>
-                <div className="mt-1 font-mono text-2xl font-bold tracking-[0.3em] text-primary">{confirmation.code}</div>
-                <div className="mt-2 text-xs text-muted-foreground">{t("client.saveCode")}</div>
-              </div>
-            )}
-            <div className="mt-6 grid gap-2">
-              <Button onClick={() => navigate({ to: "/me" })} className="h-12 rounded-xl">{t("client.yourAppointments")}</Button>
-              <Button variant="outline" onClick={() => { setConfirmation(null); setSelected(new Set()); }}>{t("common.back")}</Button>
-            </div>
-          </motion.div>
         </main>
       </div>
     );
@@ -382,7 +350,12 @@ function BookPage() {
                   if (res.code) localStorage.setItem("nassib_code", res.code);
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
                   setOfferModal(null);
-                  setConfirmation({ code: res.code, isNew: res.isNew, clientId: res.clientId, appointments: [{ serviceName: res.offerTitle, time: "—", date: res.date }] });
+                  if (res.code) {
+                    toast.success(t("client.bookSuccess", { code: res.code }));
+                  } else {
+                    toast.success(t("client.confirmed"));
+                  }
+                  navigate({ to: "/me" });
                 } catch (e) {
                   const m = (e as Error).message;
                   if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
