@@ -401,6 +401,3 @@ function NewClientForm({ onSubmit }: { onSubmit: (i: { fullName: string; age: nu
     </form>
   );
 }
-
-// Avoid unused import warning when devtools strip them
-void AnimatePresence;
