@@ -126,7 +126,12 @@ function BookPage() {
     onSuccess: (res) => {
       if (res.code) localStorage.setItem("nassib_code", res.code);
       localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
-      setBookingResult({ code: res.code, isNew: res.isNew });
+      if (res.isNew) {
+        setBookingResult({ code: res.code, isNew: true });
+      } else {
+        toast.success(t("client.confirmed"));
+        navigate({ to: "/me" });
+      }
     },
     onError: (e: Error) => {
       const m = e.message;
@@ -372,7 +377,12 @@ function BookPage() {
                   if (res.code) localStorage.setItem("nassib_code", res.code);
                   localStorage.setItem("nassib_client", JSON.stringify({ id: res.clientId, fullName: clientInfo?.fullName ?? "" }));
                   setOfferModal(null);
-                  setBookingResult({ code: res.code, isNew: res.isNew });
+                  if (res.isNew) {
+                    setBookingResult({ code: res.code, isNew: true });
+                  } else {
+                    toast.success(t("client.confirmed"));
+                    navigate({ to: "/me" });
+                  }
                 } catch (e) {
                   const m = (e as Error).message;
                   if (m === "GENDER_FEMALE_ONLY") toast.error(t("client.femaleOnly"));
