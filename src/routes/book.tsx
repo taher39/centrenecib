@@ -326,11 +326,43 @@ function BookPage() {
                 </div>
               );
             })()}
+            {datePicker && (dates[datePicker.serviceId]?.length ?? 0) > 0 && (
+              <div className="mt-4 border-t border-white/10 pt-4">
+                <p className="text-xs text-muted-foreground/70 mb-2">{t("client.yourSelection") || "اختياراتك"}</p>
+                <div className="flex flex-wrap gap-2">
+                  {dates[datePicker.serviceId]!.slice().sort().map((val) => {
+                    const d = new Date(val + "T00:00:00");
+                    const dow = d.getDay();
+                    const dayName = isAr ? DAYS_AR[dow] : DAYS_FR[dow];
+                    const months = isAr
+                      ? ["جانفي", "فيفري", "مارس", "أفريل", "ماي", "جوان", "جويلية", "أوت", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+                      : ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+                    const monthName = months[d.getMonth()];
+                    return (
+                      <button
+                        key={val}
+                        onClick={() => setDates((prev) => ({
+                          ...prev,
+                          [datePicker.serviceId]: (prev[datePicker.serviceId] ?? []).filter((x) => x !== val),
+                        }))}
+                        className="group flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary transition hover:bg-primary hover:text-primary-foreground"
+                      >
+                        <span className="font-semibold">{dayName}</span>
+                        <span className="font-bold">{d.getDate()}</span>
+                        <span>{monthName}</span>
+                        <span className="opacity-60">{d.getFullYear()}</span>
+                        <span className="ms-1 opacity-0 transition group-hover:opacity-100">✕</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
           <div className="sticky bottom-0 rounded-b-2xl border-t border-white/10 bg-black/5 px-5 py-3 backdrop-blur-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{t("client.daysSelected", { n: (datePicker ? dates[datePicker.serviceId]?.length ?? 0 : 0) })}</span>
-              <Button size="sm" onClick={() => setDatePicker(null)} className="rounded-xl px-6">{t("client.doneSelect")}</Button>
+              <Button size="sm" onClick={() => setDatePicker(null)} className="rounded-xl px-6">{t("common.confirm") || "تأكيد"}</Button>
             </div>
           </div>
         </DialogContent>
