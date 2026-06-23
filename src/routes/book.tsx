@@ -311,16 +311,8 @@ function BookPage() {
                             : "border-white/20 bg-white/5 hover:border-primary/40 hover:bg-white/10"
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${
-                            sel ? "bg-primary text-primary-foreground" : "bg-white/10 text-foreground"
-                          }`}>
-                            {dt.getDate()}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-sm text-foreground">{dayName}</div>
-                            <div className="text-xs text-muted-foreground">{monthName} {dt.getFullYear()}</div>
-                          </div>
+                        <div className="text-sm text-foreground">
+                          <span className="font-semibold">{dayName}</span> <span>{dt.getDate()}</span> <span className="text-muted-foreground">{monthName} {dt.getFullYear()}</span>
                         </div>
                         <div className={`flex h-6 w-6 items-center justify-center rounded-full border-2 transition ${
                           sel ? "border-primary bg-primary text-primary-foreground" : "border-white/30"
