@@ -64,16 +64,17 @@ function AdminProductsPage() {
     if (!file || !edit) return;
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const dataUrl = reader.result as string;
-        const res = await uploadFn({ data: { bucket: "products", fileName: file.name, mimeType: file.type, dataUrl } });
-        setEdit({ ...edit, image_url: res.url });
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+      const res = await uploadFn({ data: { bucket: "products", fileName: file.name, mimeType: file.type, dataUrl } });
+      setEdit({ ...edit, image_url: res.url });
     } catch (e) {
       toast.error((e as Error).message);
+    } finally {
       setUploading(false);
     }
   };

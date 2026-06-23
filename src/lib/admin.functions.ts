@@ -492,8 +492,9 @@ export const uploadAdminImage = createServerFn({ method: "POST" })
       .parse(d)
   )
   .handler(async ({ data, context }) => {
-    const scope = data.bucket === "gallery" ? "gallery" : "offers";
-    await requirePerm(context.userId, scope, "edit");
+    const bucketScope: Record<string, string> = { gallery: "gallery", offers: "offers", products: "products" };
+    const scope = bucketScope[data.bucket] ?? "products";
+    await requirePerm(context.userId, scope as PermScope, "edit");
 
     const match = data.dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
     if (!match) throw new Error("Image invalide");
